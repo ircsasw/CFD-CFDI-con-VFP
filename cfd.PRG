@@ -47,9 +47,36 @@
 **
 ** http://www.microsoft.com/downloads/en/details.aspx?familyid=9B2DA534-3E03-4391-8A4D-074B9F2BC1BF&displaylang=en
 **
+**
+** NOTA IMPORTANTE #4
+** Para generar la representación impresa del CFD se utiliza el procedimiento CFDToCursor() para
+** pasar los nodos del XML a cursores y así poder reportarlos. Por regla los saltos de línea y
+** retornos de carro no estan permitidos en un XML, entonces que pasa si hay un concepto en el
+** comprobante donde sea muy importante mostrar información en líneas adicionales sobre todo para
+** coneptos muy largos donde se desglozan condiciones u otra información.
+** 
+** Para solucionar este problema se incluye un parametro adicional a CFDToCursor() con el que podemos
+** indicar que se va a remplazar los conceptos obtenidos por el procedimiento en el cursor QCO por los 
+** que estan en el entorno de datos; aquí se supone que en el entorno de datos tenemos un cursor 
+** llamado curConceptos con los conceptos del comprobante tal como se guardaron en la base de datos.
+**
+**
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
+**
+** ARC  Ago 6, 2011		- Nueva propiedad XMLVersion de la clase CFDConf
+**						- Nueva propiedad incluirBOM de la clase CFDConf
+**						- Nuevo atributo Moneda de la clase CFDComprobante para CFDI
+**						- Nuevo atributo TipoCambio de la clase CFDComprobante para CFDI
+**
+** ARC  Jul 13, 2011	- Se modifica en CrearXML() que se incluya el BOM en el XML
+** 
+** VES  Ene 10, 2011	- Cambios en formato CFD
+**
+** VES  Ene 6, 2011		- Correcciones varias en funcion CrearFactura().
+** 						- Se incluyeron los atributos opcionales totalImpuestosRetenidos
+**              		  y totalImpuestosTrasladados al generar el XML.
 **
 ** VES	Ene 5, 2011		- Nueva funcion CFDProbarOpenSSL()
 **						- Nueva propiedad formatoImpresion de CFDConf
@@ -392,6 +419,7 @@ PROCEDURE CFDInit
  CFDConf.addProperty("ultimoCertificado",NULL)
  CFDConf.addProperty("formatoImpresion","CFD.FRX")
  CFDConf.addProperty("XMLversion",2)
+ CFDConf.addProperty("incluirBOM",.F.)
  
  DECLARE Sleep IN kernel32 INTEGER dwMilliseconds  
  
@@ -806,6 +834,7 @@ DEFINE CLASS CFDComprobante AS Custom
    WITH .XML._Comprobante._Impuestos
    
     IF THIS.Impuestos.Retenciones.Count > 0
+     .addProp("totalImpuestosRetenidos",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosRetenidos,15,2)))
      .addNode("Retenciones")
      WITH ._Retenciones
       FOR i = 1 TO THIS.Impuestos.Retenciones.Count
@@ -818,6 +847,7 @@ DEFINE CLASS CFDComprobante AS Custom
     ENDIF
     
     IF THIS.Impuestos.Traslados.Count > 0
+     .addProp("totalImpuestosTrasladados",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosTrasladados,15,2))) 
      .addNode("Traslados")
      WITH ._Traslados
       FOR i = 1 TO THIS.Impuestos.Traslados.Count
@@ -872,7 +902,7 @@ DEFINE CLASS CFDComprobante AS Custom
    cBuff = STRT(cBuff, "?>", "?>" + CHR(13) + CHR(10))
    
    
-   *-- Si es CFDI se agrega a los nodos el valor 'cfdi:'
+   *-- Si es CFDI se agrega a los nodos el prefijo 'cfdi:'
    IF ALLTRIM(THIS.version) = "3.0"
 	cBuff = STRT(cBuff, "<Comprobante", "<cfdi:Comprobante")	   
 		cBuff = STRT(cBuff, "<Emisor", "<cfdi:Emisor")
@@ -906,8 +936,9 @@ DEFINE CLASS CFDComprobante AS Custom
    *-- Se graba de nuevo el Xml ya en su forma final
    cBuff = CFDAsc2UTF8(cBuff)
    
+   *-- El 4 del tercer parámetro en STRTOFILE() agrega el BOM al XML en UTF-8
    IF This.incluirBOM
-      STRTOFILE(cBuff,pcArchivo,4)		&& 13/07/11 - el 4 del tercer parámetro agrega el BOM a UTF-8.
+      STRTOFILE(cBuff,pcArchivo,4)
    ELSE 
       STRTOFILE(cBuff,pcArchivo)
    ENDIF 
