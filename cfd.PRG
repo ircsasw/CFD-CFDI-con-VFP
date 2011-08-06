@@ -1,11 +1,11 @@
 ****************************************************************************
 ** CFD.PRG
 **
-** Libreria de clases para generacion del Comprobante Fiscal Digital
+** Libreria de clases para generacion del Comprobante Electronico Digital
 ** en Mexico, segun las indicaciones del SAT
 **
 ** Autor: Victor Espina
-** Version: 2.9
+** Version: 3.0
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -50,12 +50,6 @@
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
-**
-** VES	Ene 10, 2011	- Cambios en formato CFD
-**
-** VES	Ene 6, 2011		- Correcciones varias en funcion CrearFactura().
-**						- Se incluyeron los atributos opcionales totalImpuestosRetenidos
-**						  y totalImpuestosTrasladados al generar el XML.
 **
 ** VES	Ene 5, 2011		- Nueva funcion CFDProbarOpenSSL()
 **						- Nueva propiedad formatoImpresion de CFDConf
@@ -296,6 +290,8 @@
 ** ubicacionRepositorio		Incia la ubicacion del repositorio de CFDs
 ** ultimoCertificado		Instancia de la clase CFDCertificado con los datos del ultimo certificado utilizado
 ** formatoImpresion			Formato de impresion a utilizar. Por defecto es CFD.FRX
+** XMLversion				Define la versión del XML a crear. Por defecto es versión 2. (2 = CFD y 3 = CFDI)
+** icluirBOM				Agrega el BOM correspondiente a los archivos codificados en UTF-8. Por defecto es falso
 **
 **
 ** CFDOpenSSL([pcOpenSSL])
@@ -380,7 +376,7 @@ PROCEDURE CFDInit
  *
  PUBLIC CFDConf
  CFDConf = CREATE("Custom")
- CFDConf.addProperty("Version","2.9")
+ CFDConf.addProperty("Version","3.0")
  CFDConf.AddProperty("OpenSSL",ADDBS(FULLPATH(".\SSL")))
  CFDConf.AddProperty("SMTPServer","")
  CFDConf.AddProperty("SMTPPort","")
@@ -395,6 +391,7 @@ PROCEDURE CFDInit
  CFDConf.addProperty("ubicacionRepositorio",".\CFD")
  CFDConf.addProperty("ultimoCertificado",NULL)
  CFDConf.addProperty("formatoImpresion","CFD.FRX")
+ CFDConf.addProperty("XMLversion",2)
  
  DECLARE Sleep IN kernel32 INTEGER dwMilliseconds  
  
@@ -413,7 +410,7 @@ ENDPROC
 DEFINE CLASS CFDComprobante AS Custom
  *
  *-- Atributos requeridos
- Version = "2.0"
+ Version = IIF(CFDConf.XMLversion=3, "3.0", "2.0")
  Folio = 0
  Fecha = {}
  Sello = ""
@@ -438,6 +435,10 @@ DEFINE CLASS CFDComprobante AS Custom
  metodoDePago = "" 
  Impuestos = NULL
  Addenda = NULL
+ 
+ *-- Atributos de CFDI
+ Moneda = NULL
+ TipoCambio = NULL
  
  
  *-- Propiedades
@@ -624,6 +625,7 @@ DEFINE CLASS CFDComprobante AS Custom
    CFDConf.ultimoCertificado = oCert
   ELSE
    oCert = CFDConf.ultimoCertificado 
+   ?"Cached!"
   ENDIF 
   
   IF oCert.Valido AND (oCert.Vigente OR CFDConf.modoPruebas)
@@ -655,15 +657,26 @@ DEFINE CLASS CFDComprobante AS Custom
    *-- Nodo "Comprobante"
    .XML.addNode("Comprobante")
    WITH .XML._Comprobante
-    .addProp("xmlns","http://www.sat.gob.mx/cfd/2")
-    .addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
-    .addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd")
+    IF ALLTRIM(THIS.version) = "2.0"
+    	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
+    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
+   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd")
+   	ELSE 
+   		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
+    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
+   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd")
+   	ENDIF 
     .addProp("version",THIS._fixStr(THIS.version))
     .addProp("serie",THIS._fixStr(THIS.serie),CFD_OPCIONAL)
     .addProp("folio",THIS._fixStr(STR(THIS.folio,10,0)))
     .addProp("fecha",THIS._fixStr(THIS.fecha))
-    .addProp("noAprobacion",THIS._fixStr(STR(THIS.noAprobacion,10,0)))
-    .addProp("anoAprobacion",THIS._fixStr(STR(THIS.anoAprobacion,10,0)))   
+    IF ALLTRIM(THIS.version) = "2.0"
+	    .addProp("noAprobacion",THIS._fixStr(STR(THIS.noAprobacion,10,0)))
+    	.addProp("anoAprobacion",THIS._fixStr(STR(THIS.anoAprobacion,10,0)))
+    ELSE 
+    	.addProp("Moneda",THIS._fixStr(THIS.moneda),CFD_OPCIONAL)
+    	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)   
+    ENDIF 
     .addProp("formaDePago",THIS._fixStr(THIS.formaDePago))
     *.addProp("",THIS._fixStr(THIS.))
     .addProp("condicionesDePago",THIS._fixStr(THIS.condicionesDePago),CFD_OPCIONAL)
@@ -675,8 +688,8 @@ DEFINE CLASS CFDComprobante AS Custom
     .addProp("tipoDeComprobante",THIS._fixStr(THIS.tipoDeComprobante))
     .addProp("noCertificado",THIS.noCertificado)
     .addProp("certificado",THIS.Certificado)
-    .addProp("sello",THIS.sello)    
-     ENDWITH
+    .addProp("sello",THIS.sello)
+   ENDWITH
   
    *-- Nodo "Emisor"
    .XML._Comprobante.addNode("Emisor")
@@ -793,7 +806,6 @@ DEFINE CLASS CFDComprobante AS Custom
    WITH .XML._Comprobante._Impuestos
    
     IF THIS.Impuestos.Retenciones.Count > 0
-     .addProp("totalImpuestosRetenidos",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosRetenidos,15,2)))
      .addNode("Retenciones")
      WITH ._Retenciones
       FOR i = 1 TO THIS.Impuestos.Retenciones.Count
@@ -806,7 +818,6 @@ DEFINE CLASS CFDComprobante AS Custom
     ENDIF
     
     IF THIS.Impuestos.Traslados.Count > 0
-     .addProp("totalImpuestosTrasladados",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosTrasladados,15,2)))    
      .addNode("Traslados")
      WITH ._Traslados
       FOR i = 1 TO THIS.Impuestos.Traslados.Count
@@ -861,9 +872,45 @@ DEFINE CLASS CFDComprobante AS Custom
    cBuff = STRT(cBuff, "?>", "?>" + CHR(13) + CHR(10))
    
    
+   *-- Si es CFDI se agrega a los nodos el valor 'cfdi:'
+   IF ALLTRIM(THIS.version) = "3.0"
+	cBuff = STRT(cBuff, "<Comprobante", "<cfdi:Comprobante")	   
+		cBuff = STRT(cBuff, "<Emisor", "<cfdi:Emisor")
+			cBuff = STRT(cBuff, "<DomicilioFiscal", "<cfdi:DomicilioFiscal")
+			cBuff = STRT(cBuff, "<ExpedidoEn", "<cfdi:ExpedidoEn")
+		cBuff = STRT(cBuff, "</Emisor>", "</cfdi:Emisor>")
+		cBuff = STRT(cBuff, "<Receptor", "<cfdi:Receptor")
+			cBuff = STRT(cBuff, "<Domicilio", "<cfdi:Domicilio")
+		cBuff = STRT(cBuff, "</Receptor>", "</cfdi:Receptor>")
+		cBuff = STRT(cBuff, "<Conceptos>", "<cfdi:Conceptos>")
+			cBuff = STRT(cBuff, "<Concepto ", "<cfdi:Concepto ")
+				cBuff = STRT(cBuff, "<InformacionAduanera", "<cfdi:InformacionAduanera")
+				cBuff = STRT(cBuff, "<CuentaPredial", "<cfdi:CuentaPredial")
+				cBuff = STRT(cBuff, "<ComplementoConcepto", "<cfdi:ComplementoConcepto")
+				cBuff = STRT(cBuff, "<Parte", "<cfdi:Parte")
+			cBuff = STRT(cBuff, "</Concepto>", "</cfdi:Concepto>")
+		cBuff = STRT(cBuff, "</Conceptos>", "</cfdi:Conceptos>")
+		cBuff = STRT(cBuff, "<Impuestos>", "<cfdi:Impuestos>")
+			cBuff = STRT(cBuff, "<Retenciones>", "<cfdi:Retenciones>")
+				cBuff = STRT(cBuff, "<Retencion", "<cfdi:Retencion")
+			cBuff = STRT(cBuff, "</Retenciones>", "</cfdi:Retenciones>")
+			cBuff = STRT(cBuff, "<Traslados>", "<cfdi:Traslados>")
+				cBuff = STRT(cBuff, "<Traslado", "<cfdi:Traslado")
+			cBuff = STRT(cBuff, "</Traslados>", "</cfdi:Traslados>")
+		cBuff = STRT(cBuff, "</Impuestos>", "</cfdi:Impuestos>")
+		cBuff = STRT(cBuff, "<Addenda>", "<cfdi:Addenda>")
+	cBuff = STRT(cBuff, "</Comprobante>", "</cfdi:Comprobante>")
+   ENDIF 
+   
+   
    *-- Se graba de nuevo el Xml ya en su forma final
    cBuff = CFDAsc2UTF8(cBuff)
-   STRTOFILE(cBuff,pcArchivo)
+   
+   IF This.incluirBOM
+      STRTOFILE(cBuff,pcArchivo,4)		&& 13/07/11 - el 4 del tercer parámetro agrega el BOM a UTF-8.
+   ELSE 
+      STRTOFILE(cBuff,pcArchivo)
+   ENDIF 
    cBuff=""
    
    
@@ -2982,6 +3029,7 @@ PROCEDURE CreaFactura
 		TraTasIEPS N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 		TotTraIEPS N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 	    referencia C(010)  ,; 
+	    Moneda     C(020)  ,; 
 	    cliente    C(010)  ,; 
 	    pedido     C(010)  ,; 
 	    agente     C(010)  ,; 
@@ -3003,7 +3051,7 @@ PROCEDURE CreaFactura
 	   (                      ;
 	    cantidad    N(10,3) ,; 
 	    noID        C(020)  ,; 
-	    descripcio  C(250)  ,;
+	    descripcio  M		,;
 	    InfoAduana  C(250)  ,; 
 	    importe     N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 	    unidad      C(010)  ,; 
@@ -3034,7 +3082,7 @@ PROCEDURE CreaFactura
 	    fecha       C(010) ,; 
 	    aduana      C(020)  ;
 	   )
-	   
+
 	swError = .F.
 	
 RETURN 
@@ -3083,14 +3131,20 @@ ENDPROC
 *   Autor: V. Espina
 *   Fecha: Dic 2010
 *
-PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget)
+PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
  *
   *-- Se lee el XML y se cargan los datos en cursores
   *
   IF NOT CFDToCursor(pcXML) 
    RETURN .F.
   ENDIF
-
+  
+  *-- Se reemplazan los conceptos por los que estan en el entorno (curConceptos)
+  *
+  IF plReplaceCO
+	  SELECT cantidad, codigo as noId, descripcion as descripcio, "" as infoaduana, ;
+  		importe, unidad, precio_unit as valorunita, cuentapredial as nopredio FROM curConceptos INTO CURSOR QCO READWRITE 
+  ENDIF 
 
   *-- Se anade una columna BANDA al cursor de conceptos
   *
@@ -3194,7 +3248,7 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget)
     
      
      OTHERWISE
-          REPORT FORM (cFormat) NOCONSOLE TO PRINT PROMPT
+          REPORT FORM (cFormat) NOCONSOLE PREVIEW IN SCREEN TO PRINT PROMPT
   ENDCASE
   
   
@@ -3379,9 +3433,9 @@ FUNCTION CFDExtraerCadenaOriginal(pcXML, pcOpenSSL)
  cCADFile = FORCEEXT(cBATFile,"CAD")
  cXSLFile = FORCEEXT(cBATFile,"XSLT")
  cXSLTProc = GetShortName(pcOpenSSL + "XSLTPROC.EXE")
- 
- cBuff = FILETOSTR(pcOpenSSL + "cadenaoriginal_2_0_local.xslt")
- cBuff = STRT(cBuff,"<ssl-path>/",CHRT(ADDBS(JUSTPATH(cXSLTProc)),"\","/"))
+  
+ cBuff = FILETOSTR(pcOpenSSL + IIF(CFDConf.XMLversion=3, "cadenaoriginal_3_0_local.xslt", "cadenaoriginal_2_0_local.xslt"))
+ cBuff = STRT(cBuff,"<ssl-path>",CHRT(pcOpenSSL,"\","/"))
  STRTOFILE(cBuff, cXSLFile)
 
  cBuff = cXSLTProc + " {xsltFile} {xmlFile} > {cadFile}" + CRLF

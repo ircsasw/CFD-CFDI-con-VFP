@@ -24,6 +24,8 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
+ .XMLversion = 3
+ .incluirBOM = .F.
 ENDWITH
 
 
@@ -41,8 +43,9 @@ ENDIF
 LOCAL oCFD, o
 oCFD = CREATEOBJECT("CFDComprobante")
 WITH oCFD
+ *.Version = "3.0"
  .Serie = "A"
- .Folio = 25810
+ .Folio = 25815
  .Fecha = DATETIME()
  .noAprobacion = 1
  .anoAprobacion = 2009
@@ -54,8 +57,8 @@ WITH oCFD
  .Descuento = 371.00
  .motivoDescuento = "Anticipo"
  .tipoDeComprobante = "ingreso"
- .Emisor.RFC = "EGC980817DF3"
- .Emisor.nombre = "Elit Grupo Comercial, S.A. de C.V." 
+ .Emisor.RFC = "GOYA780416GM0"
+ .Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ" 
  .Emisor.domicilioFiscal.Calle = "Benito Juarez Ote"
  .Emisor.domicilioFiscal.noExterior = "106"
  .Emisor.domicilioFiscal.noInterior = "1" 
@@ -97,12 +100,12 @@ WITH oCFD
  o.informacionAduanera.fecha = CTOD("15-12-2009")
  o.informacionAduanera.aduana = "240"
 
- o = .Conceptos.Add(1.000, "DOBLATUBO DE PALANCA 1/2", 1696.00, 1696.00)    
- o.noIdentificacion = "XYZ-67890"
+ o = .Conceptos.Add(1.000, "CORTADORA CIRCULAR DE 1/2", 1696.00, 1696.00)    
+ o.noIdentificacion = "CCIRC-98"
  o.Unidad = "PIEZA"
     
- o = .Conceptos.Add(1.000, "CAUTÍN DE ESTACIÓN PROFESIONAL DE 50 WATTS", 2499.00, 2499.00)    
- o.noIdentificacion = "WED4567" 
+ o = .Conceptos.Add(1.000, "MESA DE TRABAJO USO RUDO MADERA", 2499.00, 2499.00)    
+ o.noIdentificacion = "MES0002" 
  o.Unidad = "PIEZA"
  o.informacionAduanera.numero = "12345678901" 
  o.informacionAduanera.fecha = CTOD("15-12-2009")
@@ -113,15 +116,27 @@ ENDWITH
 
 *-- Se carga la informacion del certificado 
 *
+LOCAL cArchivoKey, cArchivoCer
+* Para pruebas con certificados del SAT
+cArchivoKey = "aaa010101aaa_CSD_01.key"
+cArchivoCer = "aaa010101aaa_CSD_01.cer"
+cPasswrdKey = "a0123456789"
+
+* Certificado de pruebas del PAC
+*cArchivoKey = "goya780416gm0_1011181055s.key"
+*cArchivoCer = "goya780416gm0.cer"
+*cPasswrdKey = "12345678a"
+
+
 ?"- Validando archivos key y cer..."
-IF NOT CFDValidarKeyCer("aaa010101aaa_CSD_01.key","aaa010101aaa_CSD_01.cer","a0123456789",".\SSL")
+IF NOT CFDValidarKeyCer(cArchivoKey, cArchivoCer, cPasswrdKey,".\SSL")
  ?"ERROR: " + CFDConf.ultimoError
  RETURN
 ENDIF
 
 ?"- Leyendo certificado"
 LOCAL oCert
-oCert = oCFD.leerCertificado("aaa010101aaa_CSD_01.cer")
+oCert = oCFD.leerCertificado(cArchivoCer)
 IF ISNULL(oCert)
  ?"ERROR: " + CFDConf.ultimoError
  RETURN
@@ -142,11 +157,10 @@ ENDIF
 *-- Se sella el CFD
 *
 ?"- Generando sello digital"
-IF NOT oCFD.Sellar("aaa010101aaa_CSD_01.key","a0123456789")
+IF NOT oCFD.Sellar(cArchivoKey,cPasswrdKey)
  ?"ERROR: " + CFDConf.ultimoError
  RETURN
 ENDIF
-
 
 
 
@@ -156,36 +170,37 @@ ENDIF
 oCFD.CrearXML("test.xml")
 
 
-*-- Se vaaida el CFD
-*
-?"- Validando CFD"
-IF NOT CFDValidarXML("test.xml","aaa010101aaa_CSD_01.key", "a0123456789", "sha1", ".\SSL")
- ?"ERROR: " + CFDConf.ultimoError
- RETURN
-ENDIF
+
+*!*	*-- Se vaaida el CFD
+*!*	*
+*!*	?"- Validando CFD"
+*!*	IF NOT CFDValidarXML("test.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
+*!*	 ?"ERROR: " + CFDConf.ultimoError
+*!*	 RETURN
+*!*	ENDIF
 
 
-*-- Se graba el CFD como PDF (se requiere PDFCreator)
-*
-?"- Generando PDF"
-CFDPrint("test.xml",,.T.,"TEST.PDF")
+*!*	*-- Se graba el CFD como PDF (se requiere PDFCreator)
+*!*	*
+*!*	?"- Generando PDF"
+*!*	CFDPrint("test.xml",,.T.,"TEST.PDF")
 
 
-*-- Se envia el CFD por correo. Configure los parametros apropiados
-*   en CFDCOnf al inicio de este programa, y luego quite los comentarios
-*   para poder enviar por correo
-*
-*   El envio por correo se hace usando CDO, asi que en teoria no es necesario
-*   instalar ningun software adicional para que funcione
-*
-*?"- Enviando por correo"
-*CFDEnviarPorCorreo("sucuenta@gmail.com","Asunto","Texto","TEST.PDF")
+*!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
+*!*	*   en CFDCOnf al inicio de este programa, y luego quite los comentarios
+*!*	*   para poder enviar por correo
+*!*	*
+*!*	*   El envio por correo se hace usando CDO, asi que en teoria no es necesario
+*!*	*   instalar ningun software adicional para que funcione
+*!*	*
+*!*	*?"- Enviando por correo"
+*!*	*CFDEnviarPorCorreo("sucuenta@gmail.com","Asunto","Texto","TEST.PDF")
 
 
-*-- Se imprime el CFD
-*
-?"- Imprimendo CFD"
-CFDPrint("test.xml",.T.)
+*!*	*-- Se imprime el CFD
+*!*	*
+*!*	?"- Imprimendo CFD"
+*!*	CFDPrint("test.xml",.T.)
 
 
 
