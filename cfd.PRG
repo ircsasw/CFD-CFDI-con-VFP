@@ -5,7 +5,9 @@
 ** en Mexico, segun las indicaciones del SAT
 **
 ** Autor: Victor Espina
-** Version: 3.0
+** Adaptaciones para CFDI: Arturo Ramos
+**
+** Version: 3.1
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -55,8 +57,8 @@
 ** comprobante donde sea muy importante mostrar información en líneas adicionales sobre todo para
 ** coneptos muy largos donde se desglozan condiciones u otra información.
 ** 
-** Para solucionar este problema se incluye un parametro adicional a CFDToCursor() con el que podemos
-** indicar que se va a remplazar los conceptos obtenidos por el procedimiento en el cursor QCO por los 
+** Para solucionar este problema se incluye un parametro adicional a CFDPrint() con el que podemos
+** indicar que se va a remplazar los conceptos obtenidos por CFDToCursor() en el cursor QCO por los 
 ** que estan en el entorno de datos; aquí se supone que en el entorno de datos tenemos un cursor 
 ** llamado curConceptos con los conceptos del comprobante tal como se guardaron en la base de datos.
 **
@@ -64,6 +66,8 @@
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
+**
+** ARC  Ago 7, 2011		- Adaptaciones en CFDValidarXML para poder validar CFDI
 **
 ** ARC  Ago 6, 2011		- Nueva propiedad XMLVersion de la clase CFDConf
 **						- Nueva propiedad incluirBOM de la clase CFDConf
@@ -343,13 +347,17 @@
 ** QTR	Traslados
 **
 **
-** CFDPrint(pcXML [, plPreview, plPDFMode, pcPDFTarget)
+** CFDPrint(pcXML [, plPreview, plPDFMode, pcPDFTarget, plReplaceCO])
 ** Recibe un CFD en formato XML y genera una representacion impresora del
 ** mismo. El parametro opcion plPreview permite mostrar una vista previa
 ** del comprobante antes de imprimirlo. El parametro opcional plPDFMode permite
 ** indicar que se desea generar una representacion del CFD en formato PDF. Si
 ** se indica .T. en este parametro, se debe indicar el nombre y ubicacion del
-** archivo PDF a generar en el parametro pcPDFTarget.
+** archivo PDF a generar en el parametro pcPDFTarget. El parametro opcional
+** plReplaceCO indica que los conceptos sean reemplazados por los almacenados
+** en el cursor curConceptos para poder utilizar saltos de línea y retornos
+** de carro en la descripción de los conceptos ya que estos no son válidos
+** en el XML.
 **
 ** IMPORTANTE: Para utilizar la funcion de generar un CFD en formato PDF se
 ** requiere instalar el producto gratuito PDFCreator (www.pdfcreator.com).
@@ -2494,7 +2502,7 @@ ENDPROC
 * Arturo Ramos
 * www.ircsasoftware.com.mx
 *
-* Programa para lee un CFD v.2 y pasarlo a cursores .... v 1.0.0 - Noviembre 2010
+* Programa para lee un CFD/CFDI y pasarlo a cursores .... v 1.0.0 - Noviembre 2010
 * 
 * Dic 23, 2010
 * Cambios varios realizados por Victor Espina para adaptarlo al uso en VFP6 y permitir
@@ -2581,14 +2589,24 @@ If (xdoc.parseError.errorCode <> 0) Then
    RETURN .F.
 ENDIF 
 
+*-- Obtiene el nombre del nodo root, puede ser 'Comprobante' para CFD o 'cfdi:Comprobante' para CFDI
+oRootNode = xdoc.documentElement
+cRootTagName = oRootNode.tagName
+
+IF cRootTagName = "cfdi:Comprobante"
+ lcPrefijo = "cfdi:"
+ELSE 
+ lcPrefijo = ""
+ENDIF
+
 
 * ---------------------------------------------------------------------------
 * <Comprobante>
 * Estándar para la expresión de comprobantes fiscales digitales.
 * ---------------------------------------------------------------------------
-olNodes = xdoc.selectNodes("//Comprobante")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante")
 IF olNodes.LENGTH <= 0 THEN 
-    CFDConf.ultimoError = "Comprobante inválido. Nodo <Comprobante> no presente."
+    CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Comprobante> no presente."
 	RETURN .F.
 ENDIF 
 FOR i = 0 TO olNodes.LENGTH - 1
@@ -2609,9 +2627,9 @@ FOR i = 0 TO olNodes.LENGTH - 1
 			CASE sAtributeName = "sello"
 				UPDATE (cGenerales) SET sello      = sAtributeValues		&& Atributo requerido para contener el sello digital del comprobante fiscal, al que hacen referencia las reglas de resolución miscelánea aplicable. El sello deberá ser expresado cómo una cadena de texto en formato Base 64.
 			CASE sAtributeName = "noAprobacion"
-				UPDATE (cGenerales) SET noAprobaci = sAtributeValues		&& Atributo requerido para precisar el número de aprobación emitido por el SAT, para el rango de folios al que pertenece el folio particular que ampara el comprobante fiscal digital.
+				UPDATE (cGenerales) SET noAprobaci = sAtributeValues		&& CFD: Atributo requerido para precisar el número de aprobación emitido por el SAT, para el rango de folios al que pertenece el folio particular que ampara el comprobante fiscal digital.
 			CASE sAtributeName = "anoAprobacion"
-				UPDATE (cGenerales) SET anoAprobac = sAtributeValues		&& Atributo requerido para precisar el año en que se solicito el folio que se están utilizando para emitir el comprobante fiscal digital.
+				UPDATE (cGenerales) SET anoAprobac = sAtributeValues		&& CFD: Atributo requerido para precisar el año en que se solicito el folio que se están utilizando para emitir el comprobante fiscal digital.
 			CASE sAtributeName = "formaDePago"
 				UPDATE (cGenerales) SET formaDePag = sAtributeValues		&& Atributo requerido para precisar la forma de pago que aplica para este comprobante fiscal digital. Se utiliza para expresar Pago en una sola exhibición o número de parcialidad pagada contra el total de parcialidades, Parcialidad 1 de X.
 			CASE sAtributeName = "noCertificado"
@@ -2632,6 +2650,11 @@ FOR i = 0 TO olNodes.LENGTH - 1
 				UPDATE (cGenerales) SET metodoDePa = sAtributeValues		&& Atributo opcional de texto libre para expresar el método de pago de los bienes o servicios amparados por el comprobante. Se entiende como método de pago leyendas tales como: cheque, tarjeta de crédito o debito, depósito en cuenta, etc.
 			CASE sAtributeName = "tipoDeComprobante"
 				UPDATE (cGenerales) SET tipoDeComp = sAtributeValues		&& Atributo requerido para expresar el efecto del comprobante fiscal para el contribuyente emisor.
+			CASE sAtributeName = "TipoCambio"
+				UPDATE (cGenerales) SET TipoCambio = sAtributeValues		&& CFDI: Atributo opcional para representar el tipo de cambio conforme a la moneda usada
+			CASE sAtributeName = "Moneda"
+				UPDATE (cGenerales) SET Moneda     = sAtributeValues		&& CFDI: Atributo opcional para expresar la moneda utilizada para expresar los montos
+			
 		ENDCASE 
 	NEXT j
 NEXT i
@@ -2647,9 +2670,9 @@ ENDIF
 * <Comprobante> -- <Emisor>
 * Nodo requerido para expresar la información del contribuyente emisor del comprobante.
 * ---------------------------------------------------------------------------
-olNodes = xdoc.selectNodes("//Comprobante/Emisor")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Emisor")
 IF olNodes.LENGTH <= 0 THEN 
-    CFDConf.ultimoError = "Comprobante inválido. Nodo <Emisor> no presente."
+    CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Emisor> no presente."
 	RETURN .F.
 ENDIF 
 FOR i = 0 TO olNodes.LENGTH - 1
@@ -2671,9 +2694,9 @@ NEXT i
 * <Comprobante> -- <Emisor> -- <DomicilioFiscal>
 * Nodo requerido para precisar la información de ubicación del domicilio fiscal del contribuyente emisor.
 * ---------------------------------------------------------------------------
-olNodes = xdoc.selectNodes("//Comprobante/Emisor/DomicilioFiscal")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Emisor/"+lcPrefijo+"DomicilioFiscal")
 IF olNodes.LENGTH <= 0 THEN 
-    CFDConf.ultimoError = "Comprobante inválido. Nodo <DomicilioFiscal> del Emisor no presente."
+    CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"DomicilioFiscal> del Emisor no presente."
 	RETURN .F.
 ENDIF 
 FOR i = 0 TO olNodes.LENGTH - 1
@@ -2711,7 +2734,7 @@ NEXT i
 * <Comprobante> -- <Emisor> -- <ExpedidoEn>
 * Nodo opcional para precisar la información de ubicación del domicilio en donde es emitido el comprobante fiscal en caso de que sea distinto del domicilio fiscal del contribuyente emisor.
 * ---------------------------------------------------------------------------
-olNodes = xdoc.selectNodes("//Comprobante/Emisor/ExpedidoEn")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Emisor/"+lcPrefijo+"ExpedidoEn")
 FOR i = 0 TO olNodes.LENGTH - 1
 	FOR j = 0 TO olNodes.ITEM(i).ATTRIBUTES.LENGTH - 1
 		sAtributeName = olNodes.ITEM(i).ATTRIBUTES.ITEM(j).nodeName
@@ -2748,9 +2771,9 @@ NEXT i
 * <Comprobante> -- <Receptor>
 * Nodo requerido para precisar la información del contribuyente receptor del comprobante.
 * ---------------------------------------------------------------------------
-olNodes = xdoc.selectNodes("//Comprobante/Receptor")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Receptor")
 IF olNodes.LENGTH <= 0 THEN 
-    CFDConf.ultimoError = "Comprobante inválido. Nodo <Receptor> no presente."
+    CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Receptor> no presente."
 	RETURN .F.
 ENDIF 
 FOR i = 0 TO olNodes.LENGTH - 1
@@ -2773,7 +2796,7 @@ NEXT i
 * <Comprobante> -- <Receptor> -- <Domicilio>
 * Nodo opcional para la definición de la ubicación donde se da el domicilio del receptor del comprobante fiscal.
 * ---------------------------------------------------------------------------
-olNodes = xdoc.selectNodes("//Comprobante/Receptor/Domicilio")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Receptor/"+lcPrefijo+"Domicilio")
 FOR i = 0 TO olNodes.LENGTH - 1
 	FOR j = 0 TO olNodes.ITEM(i).ATTRIBUTES.LENGTH - 1
 		sAtributeName = olNodes.ITEM(i).ATTRIBUTES.ITEM(j).nodeName
@@ -2810,21 +2833,21 @@ NEXT i
 * Nodo requerido para enlistar los conceptos cubiertos por el comprobante.
 * ---------------------------------------------------------------------------
 SELECT (cConceptos)
-olNodes = xdoc.selectNodes("//Comprobante/Conceptos")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Conceptos")
 IF olNodes.LENGTH <= 0 THEN 
-    CFDConf.ultimoError = "Comprobante inválido. Nodo <Conceptos> no presente."
+    CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Conceptos> no presente."
 	RETURN .F.
 ENDIF 
-LeerDatos(xdoc.selectNodes("//Comprobante/Conceptos"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Conceptos"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
 SELECT (cGenerales)
 
 * ---------------------------------------------------------------------------
 * <Comprobante> -- <Impuestos>
 * Nodo requerido para capturar los impuestos aplicables.
 * ---------------------------------------------------------------------------
-olNodes = xdoc.selectNodes("//Comprobante/Impuestos/")
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/")
 IF olNodes.LENGTH <= 0 THEN 
-	  CFDConf.ultimoError = "Comprobante inválido. Nodo <Impuestos> no presente."
+	  CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Impuestos> no presente."
 	RETURN .F.
 ENDIF 
 FOR i = 0 TO olNodes.LENGTH - 1
@@ -2848,7 +2871,7 @@ NEXT i
 * Nodo opcional para asentar o referir los impuestos trasladados aplicables.
 * ---------------------------------------------------------------------------
 SELECT (cRetenciones)
-LeerDatos(xdoc.selectNodes("//Comprobante/Impuestos/Retenciones"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Retenciones"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
 GO TOP 
 SCAN 
 	DO CASE 
@@ -2870,7 +2893,7 @@ SELECT (cGenerales)
 * Nodo opcional para asentar o referir los impuestos trasladados aplicables.
 * ---------------------------------------------------------------------------
 SELECT (cTraslados)
-LeerDatos(xdoc.selectNodes("//Comprobante/Impuestos/Traslados"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Traslados"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
 GO TOP 
 SCAN 
 	DO CASE 
@@ -2886,6 +2909,38 @@ SCAN
 				TotTraIEPS = EVAL(cTraslados+".importe")
 	ENDCASE 			
 ENDSCAN 
+SELECT (cGenerales)
+
+
+* ---------------------------------------------------------------------------
+* <Comprobante> -- <Complemento> -- <TimbreFiscalDigital>
+* Nodo opcional donde se incluirá el complemento Timbre Fiscal Digital de manera
+* obligatoria y los nodos complementarios determinados por el SAT, de acuerdo a las
+* disposiciones particulares a un sector o actividad especifica.
+* ---------------------------------------------------------------------------
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Complemento/"+lcPrefijo+"TimbreFiscalDigital/")
+FOR i = 0 TO olNodes.LENGTH - 1
+	FOR j = 0 TO olNodes.ITEM(i).ATTRIBUTES.LENGTH - 1
+		sAtributeName = olNodes.ITEM(i).ATTRIBUTES.ITEM(j).nodeName
+		sAtributeValues = olNodes.ITEM(i).ATTRIBUTES.ITEM(j).TEXT
+		*? i,j,sAtributeName + "=" + sAtributeValues	&& Quitar comentario para ver el valor regresado.
+		
+		DO CASE
+			CASE sAtributeName = "version"
+				UPDATE (cGenerales) SET versionTFD = sAtributeValues
+			CASE sAtributeName = "FechaTimbrado"
+				UPDATE (cGenerales) SET fechaTFD  = sAtributeValues
+			CASE sAtributeName = "selloCFD"
+				UPDATE (cGenerales) SET selloCFD  = sAtributeValues
+			CASE sAtributeName = "noCertificadoSAT"
+				UPDATE (cGenerales) SET certSAT  = sAtributeValues
+			CASE sAtributeName = "selloSAT"
+				UPDATE (cGenerales) SET selloSAT  = sAtributeValues
+			CASE sAtributeName = "UUID"
+				UPDATE (cGenerales) SET UUID  = sAtributeValues
+		ENDCASE 
+	NEXT j
+NEXT i
 SELECT (cGenerales)
 
 * --------------------------------------------------------------------------------
@@ -2925,7 +2980,7 @@ FUNCTION LeerDatos
 		*? CHILD.nodeName
 		
 		DO CASE 
-			CASE CHILD.nodeName=="Concepto"
+			CASE CHILD.nodeName == lcPrefijo+"Concepto"
 				INSERT INTO (cConceptos) (cantidad) VALUES (0)
 				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
 					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
@@ -2947,7 +3002,7 @@ FUNCTION LeerDatos
 					ENDCASE 
 				ENDFOR
 			
-			CASE CHILD.nodeName=="Retencion"
+			CASE CHILD.nodeName == lcPrefijo+"Retencion"
 				INSERT INTO (cRetenciones) (impuesto) VALUES (" ")
 				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
 					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
@@ -2961,7 +3016,7 @@ FUNCTION LeerDatos
 					ENDCASE 
 				ENDFOR 
 				
-			CASE CHILD.nodeName=="Traslado"
+			CASE CHILD.nodeName == lcPrefijo+"Traslado"
 				INSERT INTO (cTraslados) (impuesto) VALUES (" ")
 				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
 					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
@@ -3060,6 +3115,7 @@ PROCEDURE CreaFactura
 		TraTasIEPS N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 		TotTraIEPS N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 	    referencia C(010)  ,; 
+	    TipoCambio C(013)  ,;
 	    Moneda     C(020)  ,; 
 	    cliente    C(010)  ,; 
 	    pedido     C(010)  ,; 
@@ -3074,7 +3130,13 @@ PROCEDURE CreaFactura
 	    totalletra C(250)  ,; 
 	    Notas      C(250)  ,; 
 	    fechaCFD   C(050)  ,; 
-	    fechaVence C(050)   ; 
+	    fechaVence C(050)  ,; 
+	    versionTFD c(010)  ,;
+	    fechaTFD   c(020)  ,;
+	    selloCFD   M       ,;
+	    selloSAT   M       ,;
+	    certSAT    M       ,;
+	    UUID       C(036)   ;
 	   )
 
 	* Datos de las partidas o conceptos que forman la factura
@@ -3890,6 +3952,9 @@ ENDFUNC
 *
 *   El parametro pcMetodo debe ser "md5" o "sha1"
 *
+*   NOTA IMPORTANTE: Esta función valida el sello del comprobante cuando se
+*   tiene el archivo .key (con su password) con el que se sello el comprobante originalmente.
+*
 FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenSSL)
  *
  CFDConf.ultimoError = ""
@@ -3911,17 +3976,31 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
  oXML = CREATEOBJECT('MSXML2.DOMdocument')
  oXML.Load(GetShortName(pcArchivoXML))
  IF oXML.parseError.errorCode <> 0
-  CFDConf.ultimoError = oDoc.parseError.reason
+  CFDConf.ultimoError = "Estructura XML mal armada. "+oDoc.parseError.reason
   RETURN .F.
  ENDIF
+
+ *-- Obtiene el nombre del nodo root, puede ser 'Comprobante' para CFD o 'cfdi:Comprobante' para CFDI
+ oRootNode = oXML.documentElement
+ cRootTagName = oRootNode.tagName
+ 
+ IF cRootTagName = "cfdi:Comprobante"
+  lcXSDFilev = "cfdv3.xsd"
+  lcURLXSDv  = "http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd"
+  lcURLXNSv  = "http://www.sat.gob.mx/cfd/3"
+ ELSE 
+  lcXSDFilev = "cfdv2.xsd"
+  lcURLXSDv = "http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd"
+  lcURLXNSv  = "http://www.sat.gob.mx/cfd/2"
+ ENDIF 
  
  
  *-- Si no se cuenta con una copia local del XSD, se descarga
- IF NOT FILE("CFDV2.XSD")
-  STRTOFILE(GetURL("http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd"),"cfdv2.xsd")
+ IF NOT FILE(lcXSDFilev)
+  STRTOFILE(GetURL(lcURLXSDv), lcXSDFilev)
  ENDIF
  
- *-- Se valida el XML cumpla con los standares del CFD v2.0
+ *-- Se valida el XML cumpla con los standares del CFD/CFDI
  LOCAL lResult
  lResult = .F.
  DO CASE
@@ -3933,10 +4012,11 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
 		 
 		 LOCAL cValidator,cBuff
 		 cValidator = GetShortName(ADDBS(JUSTPATH(pcOpenSSL)) + "CFDVALIDATOR.EXE")
-		 cBuff = cValidator + " -xml:{xmlFile} -xsd:{xsdFile} -xns:http://www.sat.gob.mx/cfd/2 > {tempFile}.out" + CRLF
+		 cBuff = cValidator + " -xml:{xmlFile} -xsd:{xsdFile} -xns:{xnsURL} > {tempFile}.out" + CRLF
 		 		 
 		 cBuff = STRT(cBuff,"{xmlFile}",GetShortName(pcArchivoXML))
-		 cBuff = STRT(cBuff,"{xsdFile}",GetShortName(FULLPATH("CFDV2.XSD")))
+		 cBuff = STRT(cBuff,"{xsdFile}",GetShortName(FULLPATH(lcXSDFilev)))
+		 cBuff = STRT(cBuff,"{xnsURL}",lcURLXNSv)
 		 cBuff = STRT(cBuff,"{tempFile}",cTempFile)
 		 STRTOFILE(cBuff,cBATFile)
 
@@ -3949,7 +4029,7 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
 		  CFDConf.ultimoError = "Ocurrio un error al intentar validar el XML indicado"
 		 ELSE 
 		  CFDConf.ultimoError = FILETOSTR(cTempFile + ".OUT")
-		  CFDConf.ultimoError = STRT(CFDConf.ultimoError,"[FATAL]","[ERROR]")
+		  CFDConf.ultimoError = "Estructura XML mal armada. "+STRT(CFDConf.ultimoError,"[FATAL]","[ERROR]")
 		  lResult = (AT("[ERROR]",CFDConf.ultimoError) = 0)
 		 ENDIF
 		 
@@ -3961,7 +4041,7 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
 		 LOCAL oXmlDoc, oXmlSchema
 		 oXmlSchema = CREATEOBJECT("MSXML2.XMLSchemaCache.6.0")
 		 oXmlSchema.validateOnLoad = .T.
-		 oXmlSchema.Add("http://www.sat.gob.mx/cfd/2", FULLPATH("cfdv2.xsd"))
+		 oXmlSchema.Add(lcURLXNSv, FULLPATH(lcXSDFilev))
 		 oXmlDoc = CREATEOBJECT("MSXML2.DOMDocument.6.0")
 		 oXmlDoc.validateOnParse = .T.
 		 oXmlDoc.schemas = oXmlSchema
@@ -3983,14 +4063,14 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
  IF lResult AND !EMPTY(pcArchivoKey)
   *
   LOCAL cSelloActual,cCadenaOriginal,cSelloCorrecto
-  cSelloActual = MSXMLGetAttribute(oXML.selectNodes("//Comprobante"), "sello")
+  cSelloActual = MSXMLGetAttribute(oXML.selectNodes("//"+cRootTagName), "sello")
   cCadenaOriginal = CFDExtraerCadenaOriginal(pcArchivoXML, JUSTPATH(pcOpenSSL))
   cSelloCorrecto = CFDGenerarSello(cCadenaOriginal, pcArchivoKey, pcPassword, pcMetodo, JUSTPATH(pcOpenSSL))
  
   IF NOT cSelloActual == cSelloCorrecto
    CFDConf.ultimoError = CFDConf.ultimoError + ;
                          IIF(EMPTY(CFDConf.ultimoError),"",CHR(13)+CHR(10))+ ;
-                         "[ERROR] El sello no es valido." + CHR(13) + CHR(10)
+                         "[ERROR] El sello no es valido para este certificado." + CHR(13) + CHR(10)
    _cliptext = cCadenaOriginal
    lResult = .F.
   ENDIF

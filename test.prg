@@ -171,20 +171,21 @@ oCFD.CrearXML("test.xml")
 
 
 
+*-- Se vaaida el CFD
+*
+?"- Validando CFD"
+IF NOT CFDValidarXML("test.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
+ ?"ERROR: " + CFDConf.ultimoError
+ RETURN
+ELSE 
+  ??" OK"
+ENDIF
 
-*!*	*-- Se vaaida el CFD
-*!*	*
-*!*	?"- Validando CFD"
-*!*	IF NOT CFDValidarXML("test.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
-*!*	 ?"ERROR: " + CFDConf.ultimoError
-*!*	 RETURN
-*!*	ENDIF
 
-
-*!*	*-- Se graba el CFD como PDF (se requiere PDFCreator)
-*!*	*
-*!*	?"- Generando PDF"
-*!*	CFDPrint("test.xml",,.T.,"TEST.PDF")
+*-- Se graba el CFD como PDF (se requiere PDFCreator)
+*
+?"- Generando PDF"
+CFDPrint("test.xml",,.T.,"TEST.PDF")
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
