@@ -154,13 +154,7 @@ ENDIF
 
 
 
-*-- Se sella el CFD
-*
-?"- Generando sello digital"
-IF NOT oCFD.Sellar(cArchivoKey,cPasswrdKey)
- ?"ERROR: " + CFDConf.ultimoError
- RETURN
-ENDIF
+
 
 
 
@@ -170,7 +164,13 @@ ENDIF
 oCFD.CrearXML("test.xml")
 
 
-
+*-- Se sella el CFD
+*
+?"- Generando sello digital"
+IF NOT oCFD.Sellar(cArchivoKey,cPasswrdKey)
+ ?"ERROR: " + CFDConf.ultimoError
+ RETURN
+ENDIF
 
 *!*	*-- Se vaaida el CFD
 *!*	*

@@ -920,7 +920,7 @@ DEFINE CLASS CFDComprobante AS Custom
 				cBuff = STRT(cBuff, "<Parte", "<cfdi:Parte")
 			cBuff = STRT(cBuff, "</Concepto>", "</cfdi:Concepto>")
 		cBuff = STRT(cBuff, "</Conceptos>", "</cfdi:Conceptos>")
-		cBuff = STRT(cBuff, "<Impuestos>", "<cfdi:Impuestos>")
+		cBuff = STRT(cBuff, "<Impuestos", "<cfdi:Impuestos")
 			cBuff = STRT(cBuff, "<Retenciones>", "<cfdi:Retenciones>")
 				cBuff = STRT(cBuff, "<Retencion", "<cfdi:Retencion")
 			cBuff = STRT(cBuff, "</Retenciones>", "</cfdi:Retenciones>")
@@ -937,7 +937,7 @@ DEFINE CLASS CFDComprobante AS Custom
    cBuff = CFDAsc2UTF8(cBuff)
    
    *-- El 4 del tercer parámetro en STRTOFILE() agrega el BOM al XML en UTF-8
-   IF This.incluirBOM
+   IF CFDConf.incluirBOM
       STRTOFILE(cBuff,pcArchivo,4)
    ELSE 
       STRTOFILE(cBuff,pcArchivo)
