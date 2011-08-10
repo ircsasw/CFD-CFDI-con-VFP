@@ -3749,6 +3749,9 @@ FUNCTION CFDLeerCertificado(pcArchivoCER, pcOpenSSL)
  cCert = STRTRAN(cCert,"-----END CERTIFICATE-----","")    
  cCert = STRT(SUBS(cCert, 2),CHR(10),CHR(13)+CHR(10))
  cCert = STRT(cCert,REPL(CHR(13)+CHR(10),2),"")
+ *-- Quita saltos de linea y retornos de carro del certificado
+ cCert = STRTRAN(cCert,CHR(13))
+ cCert = STRTRAN(cCert,CHR(10))
  oData.Certificado = cCert  
 
 
