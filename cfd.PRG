@@ -13,6 +13,7 @@
 ** - Halcon Divino
 ** - Arturo Ramos
 ** - Carlos Figueroa
+** - Baltazar Moreno (Test GitHUB)
 ** 
 **
 ** NOTA IMPORTANTE #1
