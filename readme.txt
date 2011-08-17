@@ -40,13 +40,13 @@ http://www.microsoft.com/downloads/en/details.aspx?familyid=9B2DA534-3E03-4391-8
 
 
 NOTA IMPORTANTE #4
-Para generar la representación impresa del CFD se utiliza el procedimiento CFDToCursor() para
-pasar los nodos del XML a cursores y así poder reportarlos. Por regla los saltos de línea y
+Para generar la representacion impresa del CFD se utiliza el procedimiento CFDToCursor() para
+pasar los nodos del XML a cursores y asi poder reportarlos. Por regla los saltos de linea y
 retornos de carro no estan permitidos en un XML, entonces que pasa si hay un concepto en el
-comprobante donde sea muy importante mostrar información en líneas adicionales sobre todo para
+comprobante donde sea muy importante mostrar informacion en lineas adicionales sobre todo para
 coneptos muy largos donde se desglozan condiciones u otra información.
 
 Para solucionar este problema se incluye un parametro adicional a CFDPrint() con el que podemos
 indicar que se va a remplazar los conceptos obtenidos por CFDToCursor() en el cursor QCO por los 
-que estan en el entorno de datos; aquí se supone que en el entorno de datos tenemos un cursor 
+que estan en el entorno de datos; aqui se supone que en el entorno de datos tenemos un cursor 
 llamado curConceptos con los conceptos del comprobante tal como se guardaron en la base de datos.
