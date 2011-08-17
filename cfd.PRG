@@ -4,16 +4,14 @@
 ** Libreria de clases para generacion del Comprobante Electronico Digital
 ** en Mexico, segun las indicaciones del SAT
 **
-** Autor: Victor Espina
-** Adaptaciones para CFDI: Arturo Ramos
+** Autores: Victor Espina / Arturo Ramos
 **
 ** Version: 3.1
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
-** - Arturo Ramos
 ** - Carlos Figueroa
-** - Baltazar Moreno (Test GitHUB)
+** - Baltazar Moreno
 ** 
 **
 ** NOTA IMPORTANTE #1
