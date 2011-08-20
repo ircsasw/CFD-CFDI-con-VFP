@@ -50,3 +50,35 @@ Para solucionar este problema se incluye un parametro adicional a CFDPrint() con
 indicar que se va a remplazar los conceptos obtenidos por CFDToCursor() en el cursor QCO por los 
 que estan en el entorno de datos; aqui se supone que en el entorno de datos tenemos un cursor 
 llamado curConceptos con los conceptos del comprobante tal como se guardaron en la base de datos.
+
+
+***********************************************************
+Referencias de Git y GitHub
+***********************************************************
+Control de versiones con git y github
+http://www.slideshare.net/guest638090/control-de-versiones-con-git-y-github
+
+Mini-tutorial Git
+http://www.slideshare.net/gnrfan/minitutorial-de-git
+Muy buen presentación que nos da una idea muy buena de lo que se puede hacer con Git
+
+Getting Started with Git and GitHub on Windows
+http://kylecordes.com/2008/git-windows-go
+
+Un tutorial en PDF, medio traducido...
+http://www.rodolinux.com.ar/docs/Tutorial-de-GIT-Editado.pdf
+
+Uso de la Wiki de GitHub
+http://www.adictosaltrabajo.com/tutoriales/tutoriales.php?pagina=githubWiki
+
+Primeros pasos con GitHub
+http://www.adictosaltrabajo.com/tutoriales/tutoriales.php?pagina=githubFirstStepsUploadProject
+
+An Illustrated Guide to Git on Windows
+http://nathanj.github.com/gitguide/index.html
+
+TortoiseGit The coolest Interface to (Git) Version Control
+http://code.google.com/p/tortoisegit/
+
+Curso de Git y GitHub, Fundamentos e Instalación
+http://www.illasaron.com/html/content/01-curso-de-git-y-github-fundamentales-e-instalaci%C3%B3n
