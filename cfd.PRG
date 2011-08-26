@@ -3744,14 +3744,12 @@ FUNCTION CFDLeerCertificado(pcArchivoCER, pcOpenSSL)
  LOCAL cCert
  cCert = FILETOSTR(cTempFile + ".PEM")
  cCert = SUBS(cCert,AT("-----BEGIN CERTIFICATE-----",cCert))
- cCert = STRTRAN(cCert,"-----BEGIN CERTIFICATE-----","")  
- cCert = STRTRAN(cCert,"-----END CERTIFICATE-----","")    
- cCert = STRT(SUBS(cCert, 2),CHR(10),CHR(13)+CHR(10))
- cCert = STRT(cCert,REPL(CHR(13)+CHR(10),2),"")
+ cCert = STRTRAN(cCert,"-----BEGIN CERTIFICATE-----","")
+ cCert = STRTRAN(cCert,"-----END CERTIFICATE-----","")
  *-- Quita saltos de linea y retornos de carro del certificado
  cCert = STRTRAN(cCert,CHR(13))
  cCert = STRTRAN(cCert,CHR(10))
- oData.Certificado = cCert  
+ oData.Certificado = cCert
 
 
  *-- Se extrae el numero de serie del certificado
@@ -4558,3 +4556,18 @@ PROCEDURE CFDProbarOpenSSL(pcOpenSSL)
  RETURN lOk
  *
 ENDPROC
+
+*-- CFDITimbraFacturaxion
+*   Envia el xml a timbrar con la empresa Facturaxion
+*	www.facturaxion.com
+*   Autor: Rulo
+*   Fecha: 26 Ago 2011
+*	Parametros: 
+*	cXMLCFD			Cadena que contiene el XML sin timbrar (y sin addendas)
+*	cCodUsuarioProv	Codigo del usuario ante el proveedor
+*	cCodUsuario		Codigo del usuario
+*	cIDSucursal		Id de Sucursal
+FUNCTION CFDITimbraFacturaxion
+PARAMETERS cXMLCFD, cCodUsuarioProv, cCodUsuario, cIDSucursal
+
+ENDFUNC

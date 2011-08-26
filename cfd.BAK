@@ -4,14 +4,12 @@
 ** Libreria de clases para generacion del Comprobante Electronico Digital
 ** en Mexico, segun las indicaciones del SAT
 **
-** Autor: Victor Espina
-** Adaptaciones para CFDI: Arturo Ramos
+** Autores: Victor Espina / Arturo Ramos
 **
 ** Version: 3.1
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
-** - Arturo Ramos
 ** - Carlos Figueroa
 ** - Baltazar Moreno
 ** 
@@ -3746,14 +3744,14 @@ FUNCTION CFDLeerCertificado(pcArchivoCER, pcOpenSSL)
  LOCAL cCert
  cCert = FILETOSTR(cTempFile + ".PEM")
  cCert = SUBS(cCert,AT("-----BEGIN CERTIFICATE-----",cCert))
- cCert = STRTRAN(cCert,"-----BEGIN CERTIFICATE-----","")  
- cCert = STRTRAN(cCert,"-----END CERTIFICATE-----","")    
+ cCert = STRTRAN(cCert,"-----BEGIN CERTIFICATE-----","")
+ cCert = STRTRAN(cCert,"-----END CERTIFICATE-----","")
  cCert = STRT(SUBS(cCert, 2),CHR(10),CHR(13)+CHR(10))
  cCert = STRT(cCert,REPL(CHR(13)+CHR(10),2),"")
  *-- Quita saltos de linea y retornos de carro del certificado
  cCert = STRTRAN(cCert,CHR(13))
  cCert = STRTRAN(cCert,CHR(10))
- oData.Certificado = cCert  
+ oData.Certificado = cCert
 
 
  *-- Se extrae el numero de serie del certificado
