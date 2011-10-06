@@ -66,6 +66,10 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** ARC  Oct 6, 2011		- Nueva función CFDCadenaCBB(pcArchivoXML) para obtener la cadena
+**						  necesaria para generar el CBB para la representación
+**						  impresa de un CFDI desde un XML timbrado
+**
 ** ARC  Ago 7, 2011		- Adaptaciones en CFDValidarXML para poder validar CFDI
 **
 ** ARC  Ago 6, 2011		- Nueva propiedad XMLVersion de la clase CFDConf
@@ -2513,6 +2517,8 @@ ENDPROC
 *
 * Si no se indica, se asume .\SSL
 *
+* Ago  7, 2010 - Arturo Ramos
+* Se adapta para poder recibir un CFDI.
 *
 * Parametros de entrada
 * ---------------------
@@ -3050,7 +3056,7 @@ PROCEDURE CreaFactura
 	CREATE CURSOR (cGenerales)    ;
 	   (                    ;
 	    versions   C(005)  ,; 
-	    serie      C(010)  ,; 	&& De 1 a 10 Caracteres
+	    serie      C(020)  ,; 	&& De 1 a 10 Caracteres para CFD / hasta 20 para CFDI
 	    folio      C(010)  ,; 	&& 10 Caracteres de 1 al 2147483647
 	    fecha      C(020)  ,; 
 	    noAprobaci C(014)  ,; 	&& 14 Máximo para CFDs
@@ -3134,7 +3140,7 @@ PROCEDURE CreaFactura
 	    fechaTFD   c(020)  ,;
 	    selloCFD   M       ,;
 	    selloSAT   M       ,;
-	    certSAT    M       ,;
+	    certSAT    c(030)  ,;
 	    UUID       C(036)   ;
 	   )
 
@@ -4571,3 +4577,81 @@ FUNCTION CFDITimbraFacturaxion
 PARAMETERS cXMLCFD, cCodUsuarioProv, cCodUsuario, cIDSucursal
 
 ENDFUNC
+
+
+
+*-- CFDCadenaCBB (Funcion)
+*   Analiza un XML indicado (con timbre) y regresa la cadena para generar el CBB
+*   según los requisitos del SAT
+*
+*
+FUNCTION CFDCadenaCBB(pcArchivoXML)
+	* -- Codigo de barras QRCode
+	* Anexo 20
+	* 1. RFC del emisor
+	* 2. RFC del receptor
+	* 3. Total (a 6 decimales fijos)
+	* 4. Identificador único del timbre (UUID) asignado
+	* 
+	* 95 caracteres conformados de la siguiente manera
+	* -> RFC del Emisor, a 12/13 posiciones, precedido por el texto / ?re= / 17 caracteres
+	* -> RFC del Receptor, a 12/13 posiciones, precedido por el texto / &rr= / 17 caracteres
+	* -> Total del comprobante a 17 posiciones (10 para los enteros, 
+	*      1 para carácter “.”, 6 para los decimales), precedido por el texto / &tt= / 21 caracteres
+	* -> UUID del comprobante, precedido por el texto / &id= / 40 caracteres
+	*
+	* -- Genera la cadena a codificar
+	LOCAL cCodifica, cRFCEmisor, cRFCReceptor, cTotal, cUUID
+	cCodifica = ''
+	
+	* Lee desde el XML del CFDI
+	oCFDI = CREATEOBJECT('MSXML2.DOMdocument')
+	oCFDI.load(pcArchivoXML)
+	IF (oCFDI.parseError.errorCode <> 0) THEN 
+	   myErr = oXML.parseError
+	   MESSAGEBOX("Estructura XML del comprobante mal armado: " + myErr.reason, 16, "Sistema")
+	   cCodifica = ''
+	ELSE 
+		* Selecciona el nodo Emisor para sacar el atributo RFC
+		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante/cfdi:Emisor")
+		IF ISNULL(olNode) THEN 
+			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Emisor> no presente.", 16, "Sistema")
+			cCodifica = ''
+		ELSE 
+			cRFCEmisor = olNode.getAttribute("rfc")
+		ENDIF
+		
+		* Selecciona el nodo Receptor para sacar el atributo RFC
+		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante/cfdi:Receptor")
+		IF ISNULL(olNode) THEN 
+			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Receptor> no presente.", 16, "Sistema")
+			cCodifica = ''
+		ELSE 
+			cRFCReceptor = olNode.getAttribute("rfc")
+		ENDIF
+		
+		* Selecciona el nodo Comprobante para sacar el atributo RFC
+		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante")
+		IF ISNULL(olNode) THEN 
+			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Comprobante> no presente.", 16, "Sistema")
+			cCodifica = ''
+		ELSE 
+			cTotal = olNode.getAttribute("total")
+			cTotal = PADL(SUBSTR(cTotal, 1, ATC('.', cTotal)-1), 10, '0')+'.'+PADR(RIGHT(cTotal, LEN(cTotal)-ATC('.', cTotal)), 6, '0')
+		ENDIF
+		
+		* Selecciona el nodo TimbreFiscalDigital para sacar el atributo UUID
+		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital")
+		IF ISNULL(olNode) THEN 
+			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <tfd:TimbreFiscalDigital> no presente.", 16, "Sistema")
+			cCodifica = ''
+		ELSE 
+			cUUID = olNode.getAttribute("UUID")
+		ENDIF
+		
+	ENDIF
+	
+	cCodifica = '?re='+cRFCEmisor+'&rr='+cRFCReceptor+'&tt='+cTotal+'&id='+cUUID
+	
+	RETURN cCodifica
+ENDFUNC 
