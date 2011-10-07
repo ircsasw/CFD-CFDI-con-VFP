@@ -67,7 +67,7 @@
 **
 ** ARC  Oct 7, 2011		- Nueva función CFDEnviarPorCorreoAdjuntos para envier por correo
 **						  Parámetros: pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF
-**						  Envia CFD por correo. A diferencia de CFDEnviarPorCorreo esta permite
+**						  Envia CFD y PDF por correo. A diferencia de CFDEnviarPorCorreo esta permite
 **   					  adjuntar el PDF ya creado lo cuál es útil cuando se utilizan diferente
 **						  formatos para la representación impresa o para enviar comprobantes
 **					      que no generó nuestro sistema como puede ser el caso de algunos PACs
