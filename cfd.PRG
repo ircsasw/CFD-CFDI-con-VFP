@@ -65,6 +65,14 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** ARC  Oct 7, 2011		- Nueva función CFDEnviarPorCorreoAdjuntos para envier por correo
+**						  Parámetros: pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF
+**						  Envia CFD por correo. A diferencia de CFDEnviarPorCorreo esta permite
+**   					  adjuntar el PDF ya creado lo cuál es útil cuando se utilizan diferente
+**						  formatos para la representación impresa o para enviar comprobantes
+**					      que no generó nuestro sistema como puede ser el caso de algunos PACs
+**						  que junto con el timbre regresan el PDF
+**
 ** ARC  Oct 6, 2011		- Nueva función CFDCadenaCBB(pcArchivoXML) para obtener la cadena
 **						  necesaria para generar el CBB para la representación
 **						  impresa de un CFDI desde un XML timbrado
@@ -397,6 +405,12 @@
 **
 ** CFDGenerarSello(pcCadenaOriginal, pcArchivoKey, pcPassword, pcMetodo, pcOpenSSL)
 ** Permite generar un sello a partir de una cadena original dada. 
+** 
+** CFDEnviarPorCorreo(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF)
+** Permite enviar correo adjuntando XML y PDF (sin regenerarlo)
+**
+** CFDCadenaCBB(pcArchivoXML)
+** Genera la cadena para convertir a QR Code (CBB)
 *****************************************************************************
 
 #DEFINE CRLF	 CHR(13)+CHR(10)
