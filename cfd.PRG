@@ -3633,6 +3633,62 @@ PROCEDURE CFDEnviarPorCorreo(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, plAdjunt
 ENDPROC
 
 
+*-- CFDEnviarPorCorreoAdjuntos
+*   Envia CFD por correo. A diferencia de CFDEnviarPorCorreo esta permite
+*   adjuntar el PDF ya creado lo cuál es útil cuando se utilizan diferente
+*   formatos para la representación impresa o para enviar comprobantes
+*   que no generó nuestro sistema como puede ser el caso de algunos PACs
+*   que junto con el timbre regresan el PDF
+*
+PROCEDURE CFDEnviarPorCorreo(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF)
+ *
+ * Se prepara la configuracion a utilizar
+ *
+ LOCAL lcSchema, loConfig, loMsg
+ lcSchema = "http://schemas.microsoft.com/cdo/configuration/"
+ loConfig = CREATEOBJECT("CDO.Configuration")
+ WITH loConfig.FIELDS
+  .ITEM(lcSchema + "smtpserver") = CFDConf.SMTPServer
+  .ITEM(lcSchema + "smtpserverport") = CFDConf.SMTPPort
+  .ITEM(lcSchema + "sendusing") = 2
+  .ITEM(lcSchema + "smtpauthenticate") = .T.
+  .ITEM(lcSchema + "smtpusessl") = CFDConf.SMTPUseSSL
+  .ITEM(lcSchema + "sendusername") = CFDConf.SMTPUserName
+  .ITEM(lcSchema + "sendpassword") = CFDConf.SMTPPassword
+  .UPDATE()
+ ENDWITH
+
+
+ * Se prepara el mensaje
+ *
+ loMsg = CREATEOBJECT("CDO.Message")
+ WITH loMsg
+  .Configuration = loConfig
+  .FROM = CFDConf.MailSender
+  .TO = pcDestinatario
+  .Subject = pcAsunto
+  .HTMLBody = pcCuerpo
+  IF FILE(FULLPATH(pcCFD))
+    .addAttachment(FULLPATH(pcCFD))
+  ENDIF 
+  IF FILE(FULLPATH(pcPDF)
+    .addAttachment(FULLPATH(pcPDF))
+  ENDIF 
+ ENDWITH
+ 
+ 
+ * Se envia el mensaje
+ *
+ loMsg.Send()
+
+
+ *-- Se liberan recursos
+ loMsg = NULL
+ loConfig = NULL
+ *
+ENDPROC
+
+
 
 
 

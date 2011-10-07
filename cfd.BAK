@@ -4609,13 +4609,15 @@ FUNCTION CFDCadenaCBB(pcArchivoXML)
 	oCFDI.load(pcArchivoXML)
 	IF (oCFDI.parseError.errorCode <> 0) THEN 
 	   myErr = oXML.parseError
-	   MESSAGEBOX("Estructura XML del comprobante mal armado: " + myErr.reason, 16, "Sistema")
+	   CFDConf.ultimoError = myErr.reason
+	  *MESSAGEBOX("Estructura XML del comprobante mal armado: " + myErr.reason, 16, "Sistema")
 	   cCodifica = ''
 	ELSE 
 		* Selecciona el nodo Emisor para sacar el atributo RFC
 		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante/cfdi:Emisor")
 		IF ISNULL(olNode) THEN 
-			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Emisor> no presente.", 16, "Sistema")
+			CFDConf.ultimoError = "XML inválido. Nodo <cfdi:Emisor> no presente."
+			*MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Emisor> no presente.", 16, "Sistema")
 			cCodifica = ''
 		ELSE 
 			cRFCEmisor = olNode.getAttribute("rfc")
@@ -4624,7 +4626,8 @@ FUNCTION CFDCadenaCBB(pcArchivoXML)
 		* Selecciona el nodo Receptor para sacar el atributo RFC
 		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante/cfdi:Receptor")
 		IF ISNULL(olNode) THEN 
-			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Receptor> no presente.", 16, "Sistema")
+			CFDConf.ultimoError = "XML inválido. Nodo <cfdi:Receptor> no presente."
+			*MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Receptor> no presente.", 16, "Sistema")
 			cCodifica = ''
 		ELSE 
 			cRFCReceptor = olNode.getAttribute("rfc")
@@ -4633,7 +4636,8 @@ FUNCTION CFDCadenaCBB(pcArchivoXML)
 		* Selecciona el nodo Comprobante para sacar el atributo RFC
 		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante")
 		IF ISNULL(olNode) THEN 
-			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Comprobante> no presente.", 16, "Sistema")
+			CFDConf.ultimoError = "XML inválido. Nodo <cfdi:Comprobante> no presente."
+			*MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Comprobante> no presente.", 16, "Sistema")
 			cCodifica = ''
 		ELSE 
 			cTotal = olNode.getAttribute("total")
@@ -4643,7 +4647,8 @@ FUNCTION CFDCadenaCBB(pcArchivoXML)
 		* Selecciona el nodo TimbreFiscalDigital para sacar el atributo UUID
 		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital")
 		IF ISNULL(olNode) THEN 
-			MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <tfd:TimbreFiscalDigital> no presente.", 16, "Sistema")
+			CFDConf.ultimoError = "XML inválido. Nodo <tfd:TimbreFiscalDigital> no presente."
+			*MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <tfd:TimbreFiscalDigital> no presente.", 16, "Sistema")
 			cCodifica = ''
 		ELSE 
 			cUUID = olNode.getAttribute("UUID")
