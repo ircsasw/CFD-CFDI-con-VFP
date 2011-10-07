@@ -68,7 +68,7 @@
 **
 ** ARC  Oct 6, 2011		- Nueva función CFDCadenaCBB(pcArchivoXML) para obtener la cadena
 **						  necesaria para generar el CBB para la representación
-**						  impresa de un CFDI
+**						  impresa de un CFDI desde un XML timbrado
 **
 ** ARC  Ago 7, 2011		- Adaptaciones en CFDValidarXML para poder validar CFDI
 **
