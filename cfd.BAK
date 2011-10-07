@@ -4,14 +4,13 @@
 ** Libreria de clases para generacion del Comprobante Electronico Digital
 ** en Mexico, segun las indicaciones del SAT
 **
-** Autores: Victor Espina / Arturo Ramos
+** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
 ** Version: 3.1
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
 ** - Carlos Figueroa
-** - Baltazar Moreno
 ** 
 **
 ** NOTA IMPORTANTE #1
@@ -4660,3 +4659,63 @@ FUNCTION CFDCadenaCBB(pcArchivoXML)
 	
 	RETURN cCodifica
 ENDFUNC 
+
+
+* -----------------------------------------
+FUNCTION GoogleQR(tcDato) 
+* -----------------------------------------
+* Esta funcion genera un código de barras bidimensional
+* utilizando la Api de Google: http://code.google.com/intl/es-AR/apis/chart/docs/gallery/qr_codes.html
+*
+* Recibe de parámetro la cadena a codificar y 
+* regresa el nombre del png generado.
+* 
+* La idea es agregarlo al formato gráfico, para que se genere la imagen, con algo así:
+*
+* GoogleQR(CFDCadenaCBB(pcArchivoXML))
+*
+* Autor: Baltazar Moreno
+* Fecha: Octubre 07, 2011
+* -----------------------------------------
+
+	lcDimensiones = '200x200'
+	lcImagen = ADDBS(SYS(2023)) + SYS(2015)+"_googleQR.png"   && En temporales de windows
+
+*	WAIT WINDOW "Generando y descargando Código QR, espere por favor..." NOWAIT 
+	DECLARE Long URLDownloadToFile IN "urlmon"; 
+	  Long pCaller,; 
+	  String szURL,; 
+	  String szFileName,; 
+	  Long dwReserved,; 
+	  Long lpfnCB 
+	lcURL ="https://chart.googleapis.com/chart?cht=qr&chs=" + ;
+	      lcDimensiones + "&chld=M&chl=" + GetEscaped(tcDato, 0x2000) 
+	nRetVal = URLDownloadToFile (0, lcURL, lcImagen, 0, 0) 
+*	WAIT CLEAR 
+
+	RETURN IIF( nRetVal == 0 , lcImagen	, "" )
+
+ENDFUNC
+* -----------------------------------------
+
+* -----------------------------------------
+FUNCTION GetEscaped(tcSource, tnFlag)
+* -----------------------------------------
+* Esta funcion convierte los caracteres no soportados en la URL
+* En sus cadenas de escape, más info:
+* http://www.news2news.com/vfp/?example=396&function=617&PHPSESSID=0e0804f1a28f0d2e8d8a0af3b257f808
+* 
+* Autor: Baltazar Moreno
+* Fecha: Octubre 07, 2011
+* -----------------------------------------
+    DECLARE INTEGER UrlEscape IN shlwapi;
+        STRING pszURL, STRING @pszEscaped,;
+        INTEGER @pcchEscaped, INTEGER dwFlags
+ 
+    LOCAL cTarget, nBufsize
+    nBufsize = Len(tcSource) * 4
+    cTarget = Repli(Chr(0), nBufsize)
+    = UrlEscape(tcSource, @cTarget, @nBufsize, tnFlag)
+RETURN Left(cTarget, nBufsize)
+ENDFUNC 
+* -----------------------------------------
