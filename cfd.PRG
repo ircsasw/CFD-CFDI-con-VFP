@@ -406,7 +406,7 @@
 ** CFDGenerarSello(pcCadenaOriginal, pcArchivoKey, pcPassword, pcMetodo, pcOpenSSL)
 ** Permite generar un sello a partir de una cadena original dada. 
 ** 
-** CFDEnviarPorCorreo(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF)
+** CFDEnviarPorCorreoAdjuntos(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF)
 ** Permite enviar correo adjuntando XML y PDF (sin regenerarlo)
 **
 ** CFDCadenaCBB(pcArchivoXML)
@@ -3653,7 +3653,7 @@ ENDPROC
 *   que no generó nuestro sistema como puede ser el caso de algunos PACs
 *   que junto con el timbre regresan el PDF
 *
-PROCEDURE CFDEnviarPorCorreo(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF)
+PROCEDURE CFDEnviarPorCorreoAdjuntos(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF)
  *
  * Se prepara la configuracion a utilizar
  *
@@ -3684,7 +3684,7 @@ PROCEDURE CFDEnviarPorCorreo(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF)
   IF FILE(FULLPATH(pcCFD))
     .addAttachment(FULLPATH(pcCFD))
   ENDIF 
-  IF FILE(FULLPATH(pcPDF)
+  IF FIELD(FULLPATH(pcPDF))
     .addAttachment(FULLPATH(pcPDF))
   ENDIF 
  ENDWITH
