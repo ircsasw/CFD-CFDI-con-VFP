@@ -65,6 +65,12 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** BMJ  Oct 7, 2011		- Nueva función CFDGoogleQR() que genera un archivo PNG con el QR del CFDI
+**                        Parámetros: tcDato, que es la cadena que contendrá codificada el CBB.
+**                        Ésta función se ayuda de otra: CFDGetEscaped() la cual convierte los 
+**						  caracteres recibidos como parámetro recibido que no son soportados en 
+**                        una URL por su secuencia de escape.
+**
 ** ARC  Oct 7, 2011		- Nueva función CFDEnviarPorCorreoAdjuntos para envier por correo
 **						  Parámetros: pcDestinatario, pcAsunto, pcCuerpo, pcCFD, pcPDF
 **						  Envia CFD y PDF por correo. A diferencia de CFDEnviarPorCorreo esta permite
@@ -4732,7 +4738,7 @@ ENDFUNC
 
 
 * -----------------------------------------
-FUNCTION GoogleQR(tcDato) 
+FUNCTION CFDGoogleQR(tcDato) 
 * -----------------------------------------
 * Esta funcion genera un código de barras bidimensional
 * utilizando la Api de Google: http://code.google.com/intl/es-AR/apis/chart/docs/gallery/qr_codes.html
@@ -4742,7 +4748,7 @@ FUNCTION GoogleQR(tcDato)
 * 
 * La idea es agregarlo al formato gráfico, para que se genere la imagen, con algo así:
 *
-* GoogleQR(CFDCadenaCBB(pcArchivoXML))
+* CFDGoogleQR(CFDCadenaCBB(pcArchivoXML))
 *
 * Autor: Baltazar Moreno
 * Fecha: Octubre 07, 2011
@@ -4759,7 +4765,7 @@ FUNCTION GoogleQR(tcDato)
 	  Long dwReserved,; 
 	  Long lpfnCB 
 	lcURL ="https://chart.googleapis.com/chart?cht=qr&chs=" + ;
-	      lcDimensiones + "&chld=M&chl=" + GetEscaped(tcDato, 0x2000) 
+	      lcDimensiones + "&chld=M&chl=" + CFDGetEscaped(tcDato, 0x2000) 
 	nRetVal = URLDownloadToFile (0, lcURL, lcImagen, 0, 0) 
 *	WAIT CLEAR 
 
@@ -4769,7 +4775,7 @@ ENDFUNC
 * -----------------------------------------
 
 * -----------------------------------------
-FUNCTION GetEscaped(tcSource, tnFlag)
+FUNCTION CFDGetEscaped(tcSource, tnFlag)
 * -----------------------------------------
 * Esta funcion convierte los caracteres no soportados en la URL
 * En sus cadenas de escape, más info:
