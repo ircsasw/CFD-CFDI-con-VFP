@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.1
+** Version: 3.2
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -61,9 +61,20 @@
 ** llamado curConceptos con los conceptos del comprobante tal como se guardaron en la base de datos.
 **
 **
+** NOTA IMPORTANTE #5
+** A partir de la version 3.2 la propiedad Addenda de la clase CFDComprobante queda descontinuada
+** y es sustituida por la propiedad Addendas.  Igualmente, la clase CFDAddenda queda sin efecto y
+** es sustituida por la clase/interfaz ICFDAddenda.
+**
+**
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
+**
+** VES  Oct 10, 2011	- Nueva clase ICFDAddenda
+**                      - Nueva clase CFDAddendas 
+**                      - Nueva propiedad Addendas en CFDComprobante
+**						- Cambio en CFDPrint() para sustituir uso de clausula READWRITE para matener la compatibilidad con versiones anteriores de VFP
 **
 ** BMJ  Oct 7, 2011		- Nueva función CFDGoogleQR() que genera un archivo PNG con el QR del CFDI
 **                        Parámetros: tcDato, que es la cadena que contendrá codificada el CBB.
@@ -307,9 +318,16 @@
 *!*	=Valido		
 *!*	=Vigente	
 *!*	=Certificado	
-*!*	=Serial			
-*!*	=VigenteDesde	
-*!*	=VigenteHasta	
+*!*	ICFDAddenda [Custom]
+*!*	===================
+*!*	-NSTag
+*!*	-NSUrl
+*!*	@ToString()
+
+
+*!*	CFDAddendas [CFDCollection]
+*!*	===========================
+*!*	@Add(addenda)
 
 
 
@@ -482,6 +500,7 @@ DEFINE CLASS CFDComprobante AS Custom
  Emisor = NULL
  Receptor = NULL
  Conceptos = NULL
+ Addendas = NULL
  
  
  *-- Atributos opcionales
@@ -520,6 +539,7 @@ DEFINE CLASS CFDComprobante AS Custom
   THIS.Impuestos = CREATEOBJECT("CFDImpuestos")
   THIS.Addenda = CREATEOBJECT("CFDAddenda")
   THIS.ubicacionOpenSSL = CFDConf.OpenSSL
+  THIS.Addendas = CREATEOBJECT("CFDAddendas")
  ENDPROC
  
  
@@ -1663,6 +1683,39 @@ DEFINE CLASS CFDCertificado AS Custom
  vigenteHasta = {//::}	&& Fin de la vigencia
  *
 ENDDEFINE
+
+
+*-- ICFDAddenda (Clase)
+*   Interfaz para addendas. Esta clase no debe instanciarse directamente sino servir
+*   de base a otras clases mas especializadas, las cuales deben implementar el metodo
+*   ToString()
+*
+DEFINE CLASS ICFDAddenda AS Custom
+ *
+ NSTag = ""      && Tag del NameSpace 
+ NSUrl = ""      && Url del XSLT asociado al NameSpace
+ 
+ PROCEDURE ToString()
+ ENDPROC
+ *
+ENDDEFINE
+
+
+
+*-- CFDAddendas (Clase)
+*   Representa la lista de addendas a incorporar al XML del comprobante
+*
+DEFINE CLASS CFDAddendas AS CFDCollection
+ *
+ *-- Add (Metodo)
+ *   Incluye una nueva addenda en la lista
+ *
+ PROCEDURE Add(poAddenda)
+  RETURN DODEFAULT(poAddenda)
+ ENDPROC
+ *
+ENDDEFINE
+
 
 
 ********************************************************
@@ -3258,9 +3311,17 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
   
   *-- Se reemplazan los conceptos por los que estan en el entorno (curConceptos)
   *
+  *   VES Oct 10, 2011: Se elimino la clausula READWRITE para usar una tecnica 
+  *   compatible con versiones de VFP anteriores a la 9
+  *
   IF plReplaceCO
-	  SELECT cantidad, codigo as noId, descripcion as descripcio, "" as infoaduana, ;
-  		importe, unidad, precio_unit as valorunita, cuentapredial as nopredio FROM curConceptos INTO CURSOR QCO READWRITE 
+    SELECT cantidad, codigo as noId, descripcion as descripcio, "" as infoaduana, ;
+  		   importe, unidad, precio_unit as valorunita, cuentapredial as nopredio ;
+      FROM curConceptos ;
+      INTO CURSOR QCOTEMP
+    SELECT 0
+    USE (DBF("QCOTEMP")) ALIAS QCO AGAIN
+    USE IN QCOTEMP
   ENDIF 
 
   *-- Se anade una columna BANDA al cursor de conceptos
