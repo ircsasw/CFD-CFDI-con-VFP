@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.1
+** Version: 3.2
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -59,6 +59,12 @@
 ** indicar que se va a remplazar los conceptos obtenidos por CFDToCursor() en el cursor QCO por los 
 ** que estan en el entorno de datos; aquí se supone que en el entorno de datos tenemos un cursor 
 ** llamado curConceptos con los conceptos del comprobante tal como se guardaron en la base de datos.
+**
+**
+** NOTA IMPORTANTE #5
+** A partir de la version 3.2 la propiedad Addenda de la clase CFDComprobante queda descontinuada
+** y es sustituida por la propiedad Addendas.  Igualmente, la clase CFDAddenda queda sin efecto y
+** es sustituida por la clase/interfaz ICFDAddenda.
 **
 **
 ****************************************************************************

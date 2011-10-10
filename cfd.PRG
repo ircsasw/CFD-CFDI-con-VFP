@@ -74,7 +74,7 @@
 ** VES  Oct 10, 2011	- Nueva clase ICFDAddenda
 **                      - Nueva clase CFDAddendas 
 **                      - Nueva propiedad Addendas en CFDComprobante
-**						- Cambio en CFDPrint() para sustituir uso de clausula READWRITE para matener la compatibilidad con versiones anteriores de VFP
+**						- Cambio en CFDPrint() para sustituir uso de clausula READWRITE para matener la compatibilidad con versiones anteriores de VFP 
 **
 ** BMJ  Oct 7, 2011		- Nueva función CFDGoogleQR() que genera un archivo PNG con el QR del CFDI
 **                        Parámetros: tcDato, que es la cadena que contendrá codificada el CBB.
