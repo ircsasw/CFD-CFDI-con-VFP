@@ -1,0 +1,19 @@
+close all
+clear all
+clear
+
+set proc to cfd
+xa=create("XMLParser")
+xa.New()
+xa.XML.addNode("ALSuper:Documento")
+xa.XML._Documento.addProp("Version","1.0")
+xa.XML._Documento.AddNode("ALSuper:Conceptos")
+xa.XML._Documento._Conceptos.addNode("ALSuper:Concepto")
+xa.XML._Documento._Conceptos._Concepto.addProp("codigo","1939393")
+xa.XML._Documento._Conceptos._Concepto.addProp("nombre","silla ejecutiva")
+xa.indentString = space(1)
+_cliptext = xa.ToString(2)
+?_cliptext
+
+
+

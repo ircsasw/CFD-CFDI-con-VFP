@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.2
+** Version: 3.3
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -70,6 +70,14 @@
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
+**
+** VES  Nov 11, 2011    - Version 3.3
+**                      - Nuevas propiedades nameSpace, nodeName y createNodeLInks en clase XMLNOdeClass
+**                      - Nueva propiedad createNodeLinks en clase XMLParser, para permitir multiples nodos hermanos con el mismo nombre
+**                      - Nuevo metodo ToString() en clase XMLParser
+**                      - Mejoras en metodos Open(), Save() e iSaveNode() en clase XMLParser para manejar NameSpaces
+**                      - Mejoras en metodo AddNode() de XMLNodeClass para manejar NameSpaces
+**                      - Mejoras en el metodo CrearXML() de la clase CFD para implementar las mejoras en las clases XMLParser y XMLNodeClass
 **
 ** VES  Oct 10, 2011	- Nueva clase ICFDAddenda
 **                      - Nueva clase CFDAddendas 
@@ -317,11 +325,14 @@
 *!*	=======================
 *!*	=Valido		
 *!*	=Vigente	
-*!*	=Certificado	
+*!*	=Certificado
+
+	
 *!*	ICFDAddenda [Custom]
 *!*	===================
 *!*	-NSTag
 *!*	-NSUrl
+*!* -parentNode
 *!*	@ToString()
 
 
@@ -734,6 +745,9 @@ DEFINE CLASS CFDComprobante AS Custom
    
    *-- Nodo "Comprobante"
    .XML.addNode("Comprobante")
+   IF THIS.Version > "2.0"  && VES Nov 11, 2011
+    .XML._Comprobante.NameSpace = "cfdi"  && Al anadir el NS "Cfdi" al nodo comprobante, todos los subnodos lo heredaran automaticamente
+   ENDIF
    WITH .XML._Comprobante
     IF ALLTRIM(THIS.version) = "2.0"
     	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
@@ -840,12 +854,16 @@ DEFINE CLASS CFDComprobante AS Custom
    *
    *   Una vez generado el Xml, se cargara en memoria para quitar las secuencias y asi corregir el problema
    *
+   *   VES Nov 11, 2011
+   *   La nueva propiedad createNodeLinks en la clas XMLNodeClass permite superar este problema
+   *
    LOCAL i,oItem,oNodo
    .XML._Comprobante.addNode("Conceptos")
    WITH .XML._Comprobante._Conceptos
+    .createNodeLinks = .F.   && Nov 11, 2011
     FOR i = 1 TO THIS.Conceptos.Count
      oItem = THIS.Conceptos.Items(i)
-     oNodo = .addNode("Concepto" + PADL(i,3,"0"))
+     oNodo = .addNode("Concepto")
      WITH oNodo
       .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad,10,3)))
       .addProp("unidad",THIS._fixStr(oItem.unidad),CFD_OPCIONAL)
@@ -856,7 +874,7 @@ DEFINE CLASS CFDComprobante AS Custom
       
       IF !EMPTY(oItem.informacionAduanera.Numero)
        .addNode("InformacionAduanera")
-       WITH ._InformacionAduanera
+       WITH .Nodes[1]  && VES Nov 11, 2011
         .addProp("numero",THIS._fixStr(oItem.informacionAduanera.numero))
         .addProp("fecha",THIS._fixStr(oItem.informacionAduanera.fecha))        
         .addProp("aduana",THIS._fixStr(oItem.informacionAduanera.aduana))        
@@ -880,16 +898,19 @@ DEFINE CLASS CFDComprobante AS Custom
    *   Tanto para los subnodos de Retenciones como de Impuestos se aplico la misma tecnica de enumeracion
    *   aplicada con los subnodos de Conceptos
    *
+   *   VES Nov 11, 2011
+   *   Se aplica la nueva propiedad createNodeLinks para evitar este problema
+   *
    .XML._Comprobante.addNode("Impuestos")
    WITH .XML._Comprobante._Impuestos
-   
     IF THIS.Impuestos.Retenciones.Count > 0
      .addProp("totalImpuestosRetenidos",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosRetenidos,15,2)))
      .addNode("Retenciones")
      WITH ._Retenciones
+     .createNodeLinks = .F.   && Nov 11, 2011     
       FOR i = 1 TO THIS.Impuestos.Retenciones.Count
        oItem = THIS.Impuestos.Retenciones.Items(i)
-       oNodo = .addNode("Retencion" + PADL(i,2,"0"))
+       oNodo = .addNode("Retencion")
        oNodo.addProp("impuesto",THIS._fixStr(oItem.Impuesto))
        oNodo.addProp("importe",THIS._fixStr(STR(oItem.Importe,15,2)))
       ENDFOR
@@ -900,9 +921,10 @@ DEFINE CLASS CFDComprobante AS Custom
      .addProp("totalImpuestosTrasladados",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosTrasladados,15,2))) 
      .addNode("Traslados")
      WITH ._Traslados
+      .createNodeLinks = .F.  && Nov 11, 2011
       FOR i = 1 TO THIS.Impuestos.Traslados.Count
        oItem = THIS.Impuestos.Traslados.Items(i)
-       oNodo = .addNode("Traslado" + PADL(i,2,"0"))
+       oNodo = .addNode("Traslado")
        oNodo.addProp("impuesto",THIS._fixStr(oItem.Impuesto))
        oNodo.addProp("tasa",THIS._fixStr(STR(oItem.tasa,6,2)))       
        oNodo.addProp("importe",THIS._fixStr(STR(oItem.Importe,15,2)))
@@ -938,49 +960,53 @@ DEFINE CLASS CFDComprobante AS Custom
    *   CRLF
    LOCAL cBuff
    cBuff = FILETOSTR(pcArchivo)
-   FOR i = 1 TO THIS.Conceptos.Count
-    cBuff = STRT(cBuff,"<Concepto" + PADL(i,3,"0"),"<Concepto")
-    cBuff = STRT(cBuff,"</Concepto" + PADL(i,3,"0"),"</Concepto")    
-   ENDFOR
-   FOR i = 1 TO THIS.Impuestos.Retenciones.Count
-    cBuff = STRT(cBuff,"<Retencion" + PADL(i,2,"0"),"<Retencion")
-   ENDFOR
-   FOR i = 1 TO THIS.Impuestos.Traslados.Count
-    cBuff = STRT(cBuff,"<Traslado" + PADL(i,2,"0"),"<Traslado")
-   ENDFOR
+*!*	   FOR i = 1 TO THIS.Conceptos.Count
+*!*	    cBuff = STRT(cBuff,"<Concepto" + PADL(i,3,"0"),"<Concepto")
+*!*	    cBuff = STRT(cBuff,"</Concepto" + PADL(i,3,"0"),"</Concepto")    
+*!*	   ENDFOR
+*!*	   FOR i = 1 TO THIS.Impuestos.Retenciones.Count
+*!*	    cBuff = STRT(cBuff,"<Retencion" + PADL(i,2,"0"),"<Retencion")
+*!*	   ENDFOR
+*!*	   FOR i = 1 TO THIS.Impuestos.Traslados.Count
+*!*	    cBuff = STRT(cBuff,"<Traslado" + PADL(i,2,"0"),"<Traslado")
+*!*	   ENDFOR
    cBuff = STRT(cBuff, ">" + CHR(13)+CHR(10), ">")
    cBuff = STRT(cBuff, "?>", "?>" + CHR(13) + CHR(10))
    
    
    *-- Si es CFDI se agrega a los nodos el prefijo 'cfdi:'
-   IF ALLTRIM(THIS.version) = "3.0"
-	cBuff = STRT(cBuff, "<Comprobante", "<cfdi:Comprobante")	   
-		cBuff = STRT(cBuff, "<Emisor", "<cfdi:Emisor")
-			cBuff = STRT(cBuff, "<DomicilioFiscal", "<cfdi:DomicilioFiscal")
-			cBuff = STRT(cBuff, "<ExpedidoEn", "<cfdi:ExpedidoEn")
-		cBuff = STRT(cBuff, "</Emisor>", "</cfdi:Emisor>")
-		cBuff = STRT(cBuff, "<Receptor", "<cfdi:Receptor")
-			cBuff = STRT(cBuff, "<Domicilio", "<cfdi:Domicilio")
-		cBuff = STRT(cBuff, "</Receptor>", "</cfdi:Receptor>")
-		cBuff = STRT(cBuff, "<Conceptos>", "<cfdi:Conceptos>")
-			cBuff = STRT(cBuff, "<Concepto ", "<cfdi:Concepto ")
-				cBuff = STRT(cBuff, "<InformacionAduanera", "<cfdi:InformacionAduanera")
-				cBuff = STRT(cBuff, "<CuentaPredial", "<cfdi:CuentaPredial")
-				cBuff = STRT(cBuff, "<ComplementoConcepto", "<cfdi:ComplementoConcepto")
-				cBuff = STRT(cBuff, "<Parte", "<cfdi:Parte")
-			cBuff = STRT(cBuff, "</Concepto>", "</cfdi:Concepto>")
-		cBuff = STRT(cBuff, "</Conceptos>", "</cfdi:Conceptos>")
-		cBuff = STRT(cBuff, "<Impuestos", "<cfdi:Impuestos")
-			cBuff = STRT(cBuff, "<Retenciones>", "<cfdi:Retenciones>")
-				cBuff = STRT(cBuff, "<Retencion", "<cfdi:Retencion")
-			cBuff = STRT(cBuff, "</Retenciones>", "</cfdi:Retenciones>")
-			cBuff = STRT(cBuff, "<Traslados>", "<cfdi:Traslados>")
-				cBuff = STRT(cBuff, "<Traslado", "<cfdi:Traslado")
-			cBuff = STRT(cBuff, "</Traslados>", "</cfdi:Traslados>")
-		cBuff = STRT(cBuff, "</Impuestos>", "</cfdi:Impuestos>")
-		cBuff = STRT(cBuff, "<Addenda>", "<cfdi:Addenda>")
-	cBuff = STRT(cBuff, "</Comprobante>", "</cfdi:Comprobante>")
-   ENDIF 
+   *
+   *   VES Nov 11, 2011
+   *   Solucionado con la nueva propiedad NameSpace de la clase XMLNodeClass
+   *
+*!*	   IF ALLTRIM(THIS.version) = "3.0"
+*!*		cBuff = STRT(cBuff, "<Comprobante", "<cfdi:Comprobante")	   
+*!*			cBuff = STRT(cBuff, "<Emisor", "<cfdi:Emisor")
+*!*				cBuff = STRT(cBuff, "<DomicilioFiscal", "<cfdi:DomicilioFiscal")
+*!*				cBuff = STRT(cBuff, "<ExpedidoEn", "<cfdi:ExpedidoEn")
+*!*			cBuff = STRT(cBuff, "</Emisor>", "</cfdi:Emisor>")
+*!*			cBuff = STRT(cBuff, "<Receptor", "<cfdi:Receptor")
+*!*				cBuff = STRT(cBuff, "<Domicilio", "<cfdi:Domicilio")
+*!*			cBuff = STRT(cBuff, "</Receptor>", "</cfdi:Receptor>")
+*!*			cBuff = STRT(cBuff, "<Conceptos>", "<cfdi:Conceptos>")
+*!*				cBuff = STRT(cBuff, "<Concepto ", "<cfdi:Concepto ")
+*!*					cBuff = STRT(cBuff, "<InformacionAduanera", "<cfdi:InformacionAduanera")
+*!*					cBuff = STRT(cBuff, "<CuentaPredial", "<cfdi:CuentaPredial")
+*!*					cBuff = STRT(cBuff, "<ComplementoConcepto", "<cfdi:ComplementoConcepto")
+*!*					cBuff = STRT(cBuff, "<Parte", "<cfdi:Parte")
+*!*				cBuff = STRT(cBuff, "</Concepto>", "</cfdi:Concepto>")
+*!*			cBuff = STRT(cBuff, "</Conceptos>", "</cfdi:Conceptos>")
+*!*			cBuff = STRT(cBuff, "<Impuestos", "<cfdi:Impuestos")
+*!*				cBuff = STRT(cBuff, "<Retenciones>", "<cfdi:Retenciones>")
+*!*					cBuff = STRT(cBuff, "<Retencion", "<cfdi:Retencion")
+*!*				cBuff = STRT(cBuff, "</Retenciones>", "</cfdi:Retenciones>")
+*!*				cBuff = STRT(cBuff, "<Traslados>", "<cfdi:Traslados>")
+*!*					cBuff = STRT(cBuff, "<Traslado", "<cfdi:Traslado")
+*!*				cBuff = STRT(cBuff, "</Traslados>", "</cfdi:Traslados>")
+*!*			cBuff = STRT(cBuff, "</Impuestos>", "</cfdi:Impuestos>")
+*!*			cBuff = STRT(cBuff, "<Addenda>", "<cfdi:Addenda>")
+*!*		cBuff = STRT(cBuff, "</Comprobante>", "</cfdi:Comprobante>")
+*!*	   ENDIF 
    
    
    *-- Se graba de nuevo el Xml ya en su forma final
@@ -1742,11 +1768,16 @@ DEFINE CLASS XmlParser AS custom
 	*-- Apuntador al objeto que contiene la estructura del archivo XML actual
 	xml = .F.
 
+    *-- VES Nov 11, 2011: nueva propiedad para controlar si se genera o no
+    *   los alias de nodo
+    createNodeLinks = .T.
+
 
 	*-- Prepara un nuevo archivo XML
 	PROCEDURE new
 		THIS.XML=CREATEOBJECT("XMLNodeClass")
 		THIS.XML.Name="ROOT"
+		THIS.XML.createNodeLinks = THIS.createNodeLinks  && Nov 11, 2011
 		THIS.FileName=""
 		  
 		RETURN THIS.XML
@@ -1795,6 +1826,8 @@ DEFINE CLASS XmlParser AS custom
 		           oNode.cData=""
 		           oNode.lPropMode=False
 		           oNode.lDataMode=False
+		           oNode.createNodeLinks = THIS.createNodeLinks
+		           
 		      
 		           *-- Se aisla de la cadena la parte que corresponde al nombre del nodo
 		           *   y una posible lista de propiedades
@@ -1811,13 +1844,20 @@ DEFINE CLASS XmlParser AS custom
 		           cName=""
 		           j=AT(" ",cText)
 		           IF j=0
-		            cName=UPPER(ALLT(cText))
+		            cName=ALLT(cText)
 		           ELSE
-		            cName=UPPER(ALLT(LEFT(cText,j - 1)))
+		            cName=ALLT(LEFT(cText,j - 1))
 		            oNode.cProps=SUBS(cText,j + 1)
 		            oNode.lPropMode=(NOT lClosedTag)
 		           ENDIF
-		           oNode.Name=cName
+		           
+		           IF AT(":",cName) = 0   && Nov 11, 2011
+		            oNode.Name=cName
+		            oNode.nameSpace = ""
+		           ELSE
+		            oNode.Name = SUBS(cName,AT(":",cName) + 1)
+		            oNode.nameSpace = LEFT(cName,AT(":",cName) - 1)
+		           ENDIF 
 		           
 		          
 		           *-- Si hay un nodo padre activo, se añade el nodo a dicho padre
@@ -1932,27 +1972,50 @@ DEFINE CLASS XmlParser AS custom
 		  SET TEXTMERGE TO (THIS.FileName) NOSHOW
 		  SET TEXTMERGE ON
 		  \\<?xml version="1.0" encoding="UTF-8"?>
-		  *\
-		  
 		  LOCAL i
 		  FOR i=1 TO THIS.XML.NodeCount
 		   THIS.iSaveNode(THIS.XML.Nodes(i))
 		  ENDFOR 
-		  
 		  SET TEXTMERGE OFF
 		  SET TEXTMERGE TO
 	ENDPROC
 
 
+	*-- Genera un string con el XML
+	PROCEDURE ToString()
+		LPARAMETERS pnMargin
+
+		  LOCAL cTempFile
+		  cTempFile = SYS(2015)+".TMP"
+		  SET TEXTMERGE TO (cTempFile) NOSHOW
+		  SET TEXTMERGE ON
+		  LOCAL i
+		  FOR i=1 TO THIS.XML.NodeCount
+		   THIS.iSaveNode(THIS.XML.Nodes(i),pnMargin)
+		  ENDFOR 
+		  SET TEXTMERGE OFF
+		  SET TEXTMERGE TO
+		  
+		  LOCAL cXML
+		  cXML = FILETOSTR(cTempFile)
+		  ERASE (cTempFile)
+		  
+		  RETURN cXML
+	ENDPROC
+
+
 	*-- Salva un nodo del XML
 	HIDDEN PROCEDURE isavenode
-		LPARAMETERS poNode
+		LPARAMETERS poNode,pnMargin
 
 		  LOCAL nDeep,cAlign,i,uValue
 		  nDeep=OCCURS("\",poNode.FullPath) 
 		  cAlign=REPL(THIS.IndentString,nDeep)
+		  IF CFDEVL(pnMargin,0) > 0
+		   cAlign = REPL(THIS.indentString,pnMargin) + cAlign
+		  ENDIF
 		  
-		  \<<cAlign>><<"<"+poNode.Name>>
+		  \<<cAlign>><<"<"+poNode.nodeName>>
 		  
 		  FOR i=1 TO poNode.PropCount
 		   IF i=1
@@ -2005,9 +2068,9 @@ DEFINE CLASS XmlParser AS custom
 		     \\><<poNode.Data>>
 		    ENDIF    
 		    FOR i=1 TO poNode.NodeCount
-		     THIS.iSaveNode(poNode.Nodes(i))
+		     THIS.iSaveNode(poNode.Nodes(i), pnMargin)
 		    ENDFOR 
-		    \<<cAlign>><<"</"+poNode.NAme+">">>
+		    \<<cAlign>><<"</"+poNode.nodeNAme+">">>
 		   ENDIF 
 		   *
 		  ENDIF         
@@ -2108,6 +2171,10 @@ DEFINE CLASS XmlNodeClass AS custom
 	Name = "xmlnodeclass"
 	lpropmode = .F.
 	ldatamode = .F.
+	NameSpace = ""  && Nov 11, 2011
+	NodeName = "" && Nov 11, 2011
+	createNodeLinks = .T.  && Nov 11,2011
+	
 
 	*-- Colección de propiedades del nodo
 	DIMENSION props[1,1]
@@ -2172,6 +2239,15 @@ DEFINE CLASS XmlNodeClass AS custom
 		  
 
 		  RETURN THIS.Nodes[nIndex]
+	ENDPROC
+
+	HIDDEN PROCEDURE nodeName_access
+		RETURN IIF(EMPTY(THIS.nameSpace),"",THIS.nameSpace + ":") + THIS.Name
+	ENDPROC
+
+
+	HIDDEN PROCEDURE nodeName_assign
+		LPARAMETERS vNewVal
 	ENDPROC
 
 
@@ -2312,11 +2388,24 @@ DEFINE CLASS XmlNodeClass AS custom
 		          poNode=CREATE("XMLNodeClass")
 		          
 		     CASE VARTYPE(poNode)="C"
-		          LOCAL cName
+		          LOCAL cName,cNameSpace
 		          cName=poNode
+		          cNameSpace = ""
+		          IF AT(":",cName)<>0
+		           cNameSpace = LEFT(cName,AT(":",cName) - 1)
+		           cName = SUBS(cName,AT(":",cNAme) + 1)
+		          ENDIF
 		          poNode=CREATE("XMLNodeClass")
-		          poNode.Name=cName
+		          poNode.Name = cName
+		          poNode.NameSpace = cNameSpace
 		  ENDCASE
+		  poNode.createNodeLinks = THIS.createNodeLinks
+		  
+		  *-- Si el nodo no tiene namespace pero el padre si, se asume el 
+		  *   namespace del padre (VES Nov 11, 2011)
+		  IF EMPTY(poNode.nameSpace)
+		   poNode.nameSpace = THIS.nameSpace
+		  ENDIF
 		  
 		  THIS.nNodeCount=THIS.nNodeCount + 1
 		  DIMENSION THIS.Nodes[THIS.nNodeCount]
@@ -2326,12 +2415,14 @@ DEFINE CLASS XmlNodeClass AS custom
 		   poNode.Data=pcData
 		  ENDIF
 		  
-		  LOCAL cNodeLink
-		  cNodeLink="_"+poNode.Name
-		  IF TYPE("THIS."+cNodeLink)="U"
-		   THIS.AddProperty(cNodeLink,poNode)
-		  ELSE
-		   STORE poNode TO ("THIS."+cNodeLink) 
+		  IF THIS.createNodeLinks  && Nov 11, 2011
+ 		   LOCAL cNodeLink
+		   cNodeLink="_"+poNode.Name
+		   IF TYPE("THIS."+cNodeLink)="U"
+		    THIS.AddProperty(cNodeLink,poNode)
+		   ELSE
+		    STORE poNode TO ("THIS."+cNodeLink) 
+		   ENDIF
 		  ENDIF
 		  
 		  RETURN poNode
@@ -4856,3 +4947,14 @@ FUNCTION CFDGetEscaped(tcSource, tnFlag)
 RETURN Left(cTarget, nBufsize)
 ENDFUNC 
 * -----------------------------------------
+
+
+*-- CFDEVL
+*   Implementacion de la funcion EVL()
+* 
+*   Autor: V Espina
+*   Fecha: 11 Nov 2011
+*
+PROCEDURE CFDEVL(puValue, puDefault)
+ RETURN IIF(EMPTY(puValue),puDEfault,puValue)
+ENDPROC

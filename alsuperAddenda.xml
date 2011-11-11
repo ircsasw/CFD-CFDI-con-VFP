@@ -1,0 +1,6 @@
+<alsuper:Alsuper version="1.0" ordenDeCompra="378402" sucursal="10090000" tipoMoneda="Pesos" tipoDeCambio="1" tipoBulto="cajas" valorFlete="0" email="conchita_navarro@imasa.com.mx">
+ <alsuper:Conceptos>
+   <alsuper:Concepto noPartida="1" codigoDeBarras="2850727000009" factorEmpaque="1" empaqueInreso="119" costoPagar="187.5" valorIva="0" valorIeps="0" />
+   <alsuper:Concepto noPartida="2" codigoDeBarras="2850728000008" factorEmpaque="1" empaqueInreso="112" costoPagar="187.5" valorIva="0" valorIeps="0" />
+ </alsuper:Conceptos>
+</alsuper:Alsuper>
