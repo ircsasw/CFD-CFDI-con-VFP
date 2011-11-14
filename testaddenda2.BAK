@@ -7,7 +7,7 @@ SET SAFETY OFF
 SET DATE ITALIAN   
 
 SET PROCEDURE TO cfd
-SET PROCEDURE TO CFDAlSuperAddenda ADDITIVE   && Addenda para AlSuper
+SET PROCEDURE TO CFDElektraAddenda ADDITIVE   && Addenda para Elektra
 
 CFDInit()
 
@@ -167,17 +167,22 @@ ENDIF
 *-- Se prepara la addenda
 ?"- Preparando Addenda"
 LOCAL oAddenda
-oAddenda = create("CFDAlSuperAddenda")
-oAddenda.Version = "1.0"
-oAddenda.ordenDecompra = "378402"
-oAddenda.sucursal = "10090000"
-oAddenda.tipoMoneda = "Pesos"
-oAddenda.tipoDeCambio = "1"
-oAddenda.tipoBulto = "Cajas"
-oAddenda.valorFlete = "0"
-oAddenda.email = "conchita_navarro@imasa.com.mx"
-oAddenda.addConcepto("1","2850727000009","1","119","187.5","0","0")
-oAddenda.addConcepto("2","2850727000008","1","112","187.5","0","0")
+oAddenda = create("CFDElektraAddenda")
+oAddenda.Emisor = "0517199"
+oAddenda.Receptor = "0000919"
+oAddenda.TipoProveedorEKT = "6"
+oAddenda.Fecha = "2011-07-27T13:13:42"
+oAddenda.MonedaDoc = "MXN"
+oAddenda.SubTotal = "2945.48"
+oAddenda.IVAPCT = "16.00"
+oAddenda.Iva = "471.28"
+oAddenda.SubTotalIva="3416.76"
+oAddenda.Total="3416.76"
+oAddenda.NumProveedor="3005296"
+oAddenda.Cantidad = "4"
+oAddenda.Concepto = "RUEDA 6.x2.88x3.15x0.80 A-125069-35"
+oAddenda.PUnitario = "736.37"
+oAddenda.Importe = "2945.48"
 
 
 *-- Se incluye la addenda en el CFD

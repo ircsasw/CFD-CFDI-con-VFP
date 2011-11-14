@@ -1,0 +1,62 @@
+ADDENDAS.TXT
+Guia para generar una addenda compatible con la version 3.4 de la libreria CFD
+
+Autor: Victor Espina
+Fecha: Nov 14, 2011
+
+NOTA:
+Los acentos fueron omitidos intencionalmente
+
+
+1. Introduccion
+
+La version 3.4 de la libreria CFD soporta la inclusion de addendas de distinto tipo dentro de la generacion del CFD. Para esto se usa la propiedad Addenda de la clase CFDComprobante, la cual debe contener el valor NULL en el caso de que el comprobante no lleve addenda (este es el valor por omision), o una instancia de la clase ICFDAddenda, en el caso de que el comprobante si lleve algun tipo de addenda.
+
+La idea es que el contenido especifico de la addenda sea generado directamente por una subclase de ICFDAddenda, que este adaptada a ese tipo de addenda en particular.
+
+
+
+
+2. La clase ICFDAddenda
+
+La clase ICFDAddenda define la interfaz basica que debe tener cualquier clase que genere addendas compatibles con la version 3.4 de la libreria CFD:
+
+PROPIEDADES
+-----------
+nodeName (String)
+  nombre del nodo donde se insertara la addenda. El valor por omision es "Addenda", pero puede ser cambiado por "Complemento", "Documento" o cualquier otro valor segun sea necesario.
+
+schemaLocation (String)
+  Opcional. El contenido de esta propiedad, si se indica, sera incluido en el valor de la propiedad "xsi:schemaLocation" del nodo "Comprobante".
+
+NSTag (String)
+ Opcional. Si la addenda lleva un prefijo o NameSpace, asi se indica el nombre del tag. ej: alsuper, if, etc.
+
+NSUrl (String)
+ Opcional. Contiene el URL del XSD asociado al NameSpace definido en NSTag, 
+ ej: http://proveedores.alsuper.com/CFD
+
+
+METODOS
+-------
+(String) ToString()
+ Devuelve un string con el XML correspondiente al contenido de la addenda
+
+
+
+3. Pasos para crear una clase Addenda
+
+a. Crear una subclase de ICFDAddenda, ej: DEFINE CLASS CFDAddendaPruebas AS ICFDAddenda
+b. Configurar las propiedades base nodeName, schemaLocation, NSTag y NSUrl
+c. Definir las propiedades y metodos especificos necesarios para el manejo de la addenda que se desea implementar
+d. Programar el metodo TOString() a fin de devolver el XML correspondiente a la Addenda que se esta implementando, en base a los valores de las propiedades especificas de la clase
+
+Para mayor informacion, ver los archivos de ejemplo:
+CFDAlSuperAddenda.PRG (Implementacion de prueba de la addenda de AlSuper)
+CFDElecktraAddenda.PRG (Implementacion de prueba de la addenda de Elektra)
+TestAddenda.PRG (Prueba de CFD con addenda de AlSuper)
+TestAddenda2.PRG (Prueba de CFD con addenda de Elektra)
+
+
+
+-------------------------------------- FIN DEL DOCUMENTO -------------------------------------------

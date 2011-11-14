@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.3
+** Version: 3.4
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -62,14 +62,24 @@
 **
 **
 ** NOTA IMPORTANTE #5
-** A partir de la version 3.2 la propiedad Addenda de la clase CFDComprobante queda descontinuada
-** y es sustituida por la propiedad Addendas.  Igualmente, la clase CFDAddenda queda sin efecto y
-** es sustituida por la clase/interfaz ICFDAddenda.
+** A partir de la version 3.2 la propiedad Addenda de la clase CFDComprobante cambia su funcionamiento
+** completamente, por lo que ya no es compatible con su uso en versiones anteriores. Ver archivo
+** "ADDENDAS.TXT" para informacion sobre como generar addendas.
 **
 **
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
+**
+** VES  Nov 14, 2011    - Cambios en metodo CrearXML para incluir el manejo de addendas
+**                      - Nuevas propiedades nodeName y schemaLocation de la clase ICFDAddenda
+**   
+** VES  Nov 12, 2011	- Version 3.4
+**						- Nueva propiedad Complemento de la clase CFDComprobante
+**						- Nuevo uso de la propiedad CFDAddenda de CFDComprobante
+**						- Eliminacion de la propiedad CFDAddendas y la clase homonima, introducidos en Oct 10, 2011
+**						- Mejoras en el metodo CrearXML() para incluir la generacion del nodo Addenda y/o Comprobante
+**                      - Nueva funcion CFDBuffer()
 **
 ** VES  Nov 11, 2011    - Version 3.3
 **                      - Nuevas propiedades nameSpace, nodeName y createNodeLInks en clase XMLNOdeClass
@@ -208,7 +218,8 @@
 *!*	-motivoDescuento 
 *!*	-metodoDePago 
 *!*	+Impuestos {CFDImpuestos}
-*!*	-Addenda {CFDAddenda}
+*!*	-Addenda {ICFDAddenda}
+*|* -Complemento [ICFDAddenda]
 *!*	=cadenaOriginal [2]
 *!* =ubicacionOpenSSL [3]
 *!*	@Sellar(archivo-key, password) [4]
@@ -308,7 +319,7 @@
 *!*	+Importe
 
 
-*!*	CFDAddenda {CFDCollection}
+*!*	CFDAddenda {CFDCollection}  (Obsoleto)
 *!*	==========================
 *!*	@Add(nombre, valor)
 
@@ -330,15 +341,12 @@
 	
 *!*	ICFDAddenda [Custom]
 *!*	===================
+*!* -nodeName
+*!* -schemaLocation
 *!*	-NSTag
 *!*	-NSUrl
-*!* -parentNode
 *!*	@ToString()
 
-
-*!*	CFDAddendas [CFDCollection]
-*!*	===========================
-*!*	@Add(addenda)
 
 
 
@@ -511,7 +519,6 @@ DEFINE CLASS CFDComprobante AS Custom
  Emisor = NULL
  Receptor = NULL
  Conceptos = NULL
- Addendas = NULL
  
  
  *-- Atributos opcionales
@@ -523,6 +530,8 @@ DEFINE CLASS CFDComprobante AS Custom
  metodoDePago = "" 
  Impuestos = NULL
  Addenda = NULL
+ Complemento = NULL  && VES Nov 12, 2011
+ 
  
  *-- Atributos de CFDI
  Moneda = NULL
@@ -548,9 +557,7 @@ DEFINE CLASS CFDComprobante AS Custom
   THIS.Receptor = CREATEOBJECT("CFDPersona")
   THIS.Conceptos = CREATEOBJECT("CFDConceptos")
   THIS.Impuestos = CREATEOBJECT("CFDImpuestos")
-  THIS.Addenda = CREATEOBJECT("CFDAddenda")
   THIS.ubicacionOpenSSL = CFDConf.OpenSSL
-  THIS.Addendas = CREATEOBJECT("CFDAddendas")
  ENDPROC
  
  
@@ -938,15 +945,20 @@ DEFINE CLASS CFDComprobante AS Custom
 
    *-- Nodo "Addenda"
    *
-   IF THIS.Addenda.Count > 0
-    .XML._Comprobante.addNode("Addenda")
-    .XML._Comprobante._Addenda.addNode("InfoAdicional")
-    WITH .XML._Comprobante._Addenda._InfoAdicional
-     FOR i = 1 TO THIS.Addenda.Count
-      oItem = THIS.Addenda.Items(i)
-      .addProp(oItem.Nombre, THIS._fixStr(oItem.Valor))
-     ENDFOR
-    ENDWITH
+   *   VES Nov 14, 2011
+   *   Se reprogramo esta rutina para hacer uso de la nueva clase ICFDAddenda
+   *
+   IF !ISNULL(THIS.Addenda) AND LOWER(THIS.Addenda.ParentClass) == "icfdaddenda"
+    oNodo = oParser.XML._Comprobante.addNode(THIS.Addenda.nodeName)
+    oNodo.Data = THIS.Addenda.ToString() 
+    IF !EMPTY(THIS.Addenda.NSTag)
+     oParser.XML._Comprobante.addProp("xmlns:" + THIS.Addenda.NSTag, THIS.Addenda.NSUrl)
+    ENDIF
+    IF !EMPTY(THIS.Addenda.schemaLocation)
+     WITH oParser.XML._Comprobante.Props["xsi:schemaLocation"]
+      .Value = .Value + SPACE(1) + THIS.Addenda.schemaLocation
+     ENDWITH
+    ENDIF
    ENDIF 
 
    
@@ -1321,10 +1333,17 @@ ENDDEFINE
 *   Representa una lista de pares (nombre, valor) que representa datos
 *   adicionales a ser incluidos en la seccion Addenda del comprobante
 *
+*   VES Nov 12, 2011
+*   A partir de la version 3.4, esta clase se queda obsoleta y ya no 
+*   tiene efecto cobre el CFD. En su lugar, debe usarse la interfaz
+*   ICFDAddenda y las propiedades Addenda y Complemento de la clase
+*   CFDComprobante.
+*
 DEFINE CLASS CFDAddenda AS CFDCollection
  *
  *-- Add (Metodo)
- *   Incluye un nuevo elemento en la lista de addendas
+ *   Incluye un nuevo elemento en la lista de addendas (se mantiene por
+ *   compatibilidad con versiones anteriores)
  *
  PROCEDURE Add(pcNombre, pcValor)
   *
@@ -1718,9 +1737,11 @@ ENDDEFINE
 *
 DEFINE CLASS ICFDAddenda AS Custom
  *
- NSTag = ""      && Tag del NameSpace 
- NSUrl = ""      && Url del XSLT asociado al NameSpace
- 
+ nodeName = "Addenda"   && Nombre del nodo: Addenda o Complemento 
+ schemaLocation = ""    && Ubicacion del schema
+ NSTag = ""             && Tag del NameSpace 
+ NSUrl = ""             && Url del XSLT asociado al NameSpace
+   
  PROCEDURE ToString()
  ENDPROC
  *
@@ -1728,19 +1749,6 @@ ENDDEFINE
 
 
 
-*-- CFDAddendas (Clase)
-*   Representa la lista de addendas a incorporar al XML del comprobante
-*
-DEFINE CLASS CFDAddendas AS CFDCollection
- *
- *-- Add (Metodo)
- *   Incluye una nueva addenda en la lista
- *
- PROCEDURE Add(poAddenda)
-  RETURN DODEFAULT(poAddenda)
- ENDPROC
- *
-ENDDEFINE
 
 
 
@@ -1778,6 +1786,7 @@ DEFINE CLASS XmlParser AS custom
 		THIS.XML=CREATEOBJECT("XMLNodeClass")
 		THIS.XML.Name="ROOT"
 		THIS.XML.createNodeLinks = THIS.createNodeLinks  && Nov 11, 2011
+		THIS.XML.indentString = THIS.indentString && Nov 11, 2011
 		THIS.FileName=""
 		  
 		RETURN THIS.XML
@@ -1984,22 +1993,15 @@ DEFINE CLASS XmlParser AS custom
 	*-- Genera un string con el XML
 	PROCEDURE ToString()
 		LPARAMETERS pnMargin
-
-		  LOCAL cTempFile
-		  cTempFile = SYS(2015)+".TMP"
-		  SET TEXTMERGE TO (cTempFile) NOSHOW
-		  SET TEXTMERGE ON
-		  LOCAL i
-		  FOR i=1 TO THIS.XML.NodeCount
-		   THIS.iSaveNode(THIS.XML.Nodes(i),pnMargin)
-		  ENDFOR 
-		  SET TEXTMERGE OFF
-		  SET TEXTMERGE TO
-		  
-		  LOCAL cXML
-		  cXML = FILETOSTR(cTempFile)
-		  ERASE (cTempFile)
-		  
+          LOCAL cXML,cCRLF,i
+          cCRLF = CHR(13)+CHR(10)
+          cXML = ""
+          FOR i = 1 TO THIS.XML.NodeCount
+           IF i > 1
+            cXML = cXML + cCRLF
+           ENDIF
+           cXML = cXML + THIS.XML.Nodes[i].ToString(pnMargin)
+          ENDFOR
 		  RETURN cXML
 	ENDPROC
 
@@ -2050,7 +2052,7 @@ DEFINE CLASS XmlParser AS custom
 		   IF ISNULL(poNode.Data)
 		    \\<<"/>">>
 		   ELSE
-		    \\<<">">><<poNode.Data>><<+"</"+poNode.Id+">">>
+		    \\<<">">><<poNode.Data>><<+"</"+poNode.nodeName+">">>
 		   ENDIF
 		   *
 		  ELSE          
@@ -2174,6 +2176,7 @@ DEFINE CLASS XmlNodeClass AS custom
 	NameSpace = ""  && Nov 11, 2011
 	NodeName = "" && Nov 11, 2011
 	createNodeLinks = .T.  && Nov 11,2011
+	indentString = "" && Nov 11, 2011
 	
 
 	*-- Colección de propiedades del nodo
@@ -2400,6 +2403,7 @@ DEFINE CLASS XmlNodeClass AS custom
 		          poNode.NameSpace = cNameSpace
 		  ENDCASE
 		  poNode.createNodeLinks = THIS.createNodeLinks
+		  poNode.indentString = THIS.indentString
 		  
 		  *-- Si el nodo no tiene namespace pero el padre si, se asume el 
 		  *   namespace del padre (VES Nov 11, 2011)
@@ -2471,6 +2475,84 @@ DEFINE CLASS XmlNodeClass AS custom
 	ENDPROC
 
 
+
+    * ToString (VES Nov 12, 2011)
+    * Devuelve una representacion en string del nodo y su contenido
+    *  
+    PROCEDURE ToString(pnMargin)
+     *
+		  LOCAL nDeep,cAlign,i,uValue,cResult
+		  nDeep=OCCURS("\",THIS.FullPath) 
+		  cCRLF = CHR(13) + CHR(10)
+		  cAlign=REPL(THIS.IndentString,nDeep)
+		  IF CFDEVL(pnMargin,0) > 0
+		   cAlign = REPL(THIS.indentString,pnMargin) + cAlign
+		  ENDIF
+		  
+		  cResult = cAlign + "<" + THIS.nodeName
+		  
+		  FOR i=1 TO THIS.PropCount
+		   IF i=1
+		    cResult = cResult + SPACE(1)
+		   ENDIF
+		   uValue=THIS.Props(i).Value
+		   DO CASE
+		      CASE VARTYPE(uValue)="C"
+		           uValue=["]+uValue+["]
+		      CASE VARTYPE(uValue)="D"
+		           uValue=[{]+DTOC(uValue)+[}]
+		      CASE VARTYPE(uValue)="T"
+		           uValue=[{]+TTOC(uValue)+[}]
+		      CASE VARTYPE(uValue)="N" AND INT(uValue)<>uValue
+		           uValue=ALLT(STR(uValue,30,6))
+		      CASE VARTYPE(uValue)="N" AND INT(uValue)=uValue
+		           uValue=ALLT(STR(uValue,30))
+		      CASE VARTYPE(uValue)="L"
+		           uValue=IIF(uValue,".T.",".F.")
+		      OTHERWISE
+		            uValue=TRANS(uValue,"")
+		   ENDCASE
+		   cResult = cResult + THIS.Props[i].Id + "=" + uValue
+		   IF i < THIS.PropCount
+		    cResult = cResult + SPACE(1)
+		   ENDIF
+		  ENDFOR
+
+		  IF THIS.PropCount=0 AND THIS.NodeCount=0
+		   *
+		   IF ISNULL(THIS.Data)
+		    cResult = cResult + "/>"
+		   ELSE
+		    cResult = cResult + ">" + THIS.Data + "</" + THIS.nodeName + ">"
+		   ENDIF
+		   *
+		  ELSE          
+		   *
+		   IF THIS.NodeCount=0
+		    IF ISNULL(THIS.Data)
+		     cResult = cResult + "/>"
+		    ELSE
+		     cResult = cResult + ">" + THIS.Data + "</" + THIS.nodeName + ">"
+		    ENDIF    
+		   ELSE
+		    IF ISNULL(THIS.Data)
+		     cResult = cResult + ">"
+		    ELSE
+		     cResult = cResult + ">" + THIS.Data
+		    ENDIF    
+		    LOCAL cChildren
+		    FOR i=1 TO THIS.NodeCount
+		      cChildren = THIS.Nodes[i].ToString(pnMargin)
+		      cResult = cResult + CRLF + cChildren
+		    ENDFOR 
+		    cResult = cResult + cCRLF + cAlign + "</" + THIS.nodeName + ">"
+		   ENDIF 
+		   *
+		  ENDIF         
+     
+          RETURN cResult
+     *
+    ENDPROC
 ENDDEFINE
 
 
@@ -4209,7 +4291,7 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
  oXML = CREATEOBJECT('MSXML2.DOMdocument')
  oXML.Load(GetShortName(pcArchivoXML))
  IF oXML.parseError.errorCode <> 0
-  CFDConf.ultimoError = "Estructura XML mal armada. "+oDoc.parseError.reason
+  CFDConf.ultimoError = "Estructura XML mal armada. "+oXML.parseError.reason
   RETURN .F.
  ENDIF
 
@@ -4958,3 +5040,35 @@ ENDFUNC
 PROCEDURE CFDEVL(puValue, puDefault)
  RETURN IIF(EMPTY(puValue),puDEfault,puValue)
 ENDPROC
+
+
+*-- CFDBuffer
+*   Funcion para crear un buffer de datos e inicializarlo
+*
+*   Autor: V Espina
+*   Fecha: Nov 12, 2011
+*
+*   Ejemplo:
+*   oBuff = CFDBuffer("Nombre,Apellido","Victor","Espina")
+*   ?oBuff.Nombre -> "Victor"
+*   ?oBuff.Apellido -> "Espina"
+*
+PROCEDURE CFDBuffer
+LPARAMETERS pcItemList,p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19
+ *
+ LOCAL oBuff,i,cProp
+ oBuff=CREATEOBJECT("Custom")
+
+ LOCAL cPropName,uPropValue,nCount
+ LOCAL ARRAY aProps[1]
+ nCount = ALINES(aProps,STRT(pcItemList,",",CHR(13)+CHR(10)))
+ FOR i=1 TO MIN(nCount,20)
+  cPropName = aProps[i]
+  uPropValue = EVALUATE("P" + ALLTRIM(STR(i - 1)))
+  oBuff.AddProperty(cPropName, uPropValue)
+ ENDFOR
+ 
+ RETURN oBuff
+ *
+ENDPROC
+

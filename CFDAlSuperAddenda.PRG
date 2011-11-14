@@ -1,0 +1,112 @@
+* CFDALSUPERADDENDA.PRG
+* Define la addenda para ALSuper
+*
+* NOTA #1:
+* Las propiedades schemaLocation, NSTag y NSUrl son opcionales. En el case de addendas cuyo NameSpace se define directamente 
+* en el nodo principal, estas propiedades deben estar vacias y queda en manos del programador definir el namespace y declarar
+* el mismo dentro del metodo ToString() (Ver TESTADDENDA2.PRG)
+*
+* NOTA #2:
+* La propiedad nodeName contiene el nombre del nodo principal donde se incluira la addenda. El valor por omision es "Addenda", pero
+* puede ser cambiado por "Complemento" o "Documento", segun sea necesario.
+* 
+* NOTA #3: 
+* No es obligatorio usar la clase XMLParser para generar el texto XML correspondiente a la addenda en el metodo ToString(), pero es
+* altamente recomendable. Sin embargo, puede usar cualquier metodo que desee para generar el XML y devolverlo en forma de string.
+*
+DEFINE CLASS CFDALSuperAddenda AS ICFDAddenda
+ *
+ *-- Propiedades base
+ nodeName = "Addenda"  
+ schemaLocation = "http://proveedores.alsuper.com/addenda/1.xsd"
+ NSTag = "alsuper"
+ NSUrl = "http://proveedores.alsuper.com/CFD"
+ 
+ 
+ 
+ *-- Propiedades personalizadas
+ Version = "1.0"
+ ordenDeCompra = ""
+ Sucursal = ""
+ tipoMoneda = ""
+ tipoDeCambio = ""
+ tipoBulto = ""
+ valorFlete = ""
+ eMail = ""
+ Conceptos = NULL
+ 
+ 
+ *-- Constructor
+ PROCEDURE Init
+  DODEFAULT()
+  THIS.Conceptos = CREATEOBJECT("CFDCollection")
+ ENDPROC
+ 
+ 
+ 
+ *-- Metodos personalizados
+ 
+ *-- addConcepto
+ *   Incluir un nuevo item en la lista de conceptos
+ *
+ PROCEDURE addConcepto(pcNoPartida, pcCodigoBarras, pcFactorEmpaque, pcEmpaqueInreso, pcCostoPAgar, pcValorIVA, pcValorIeps)
+  LOCAL oItem
+  oItem = CFDBuffer("noPartida,codigoBarras,factorEmpaque,empaqueInreso,costoPAgar,valorIVA,valorIeps",;
+                    pcNoPartida, pcCodigoBarras, pcFactorEmpaque, pcEmpaqueInreso, pcCostoPAgar, pcValorIVA, pcValorIeps)
+  THIS.Conceptos.Add(oItem)                    
+ ENDPROC
+ 
+ 
+ *-- Metodos base
+ 
+ PROCEDURE ToString()
+  *
+  LOCAL oXML
+  oXML = CREATEOBJECT("XMLParser")
+  oXML.New()
+  
+  * Root node
+  LOCAL oRoot
+  oRoot = oXML.XML.addNode("alsuper:Alsuper")
+  oRoot.addProp("version",THIS.Version)
+  oRoot.addProp("ordenDeCompra", THIS.ordenDeCompra)
+  oRoot.addProp("sucursal",THIS.sucursal)
+  oRoot.addProp("tipoMoneda",THIS.tipoMoneda)
+  oRoot.addProp("tipoDeCambio",THIS.tipoDeCambio)
+  oRoot.addProp("tipoBulto",THIS.tipoBulto)
+  oRoot.addProp("valorFlete",THIS.valorFlete)
+  oRoot.addProp("email",THIS.EMail)
+  
+  * Conceptos
+  oRoot.addNode("Conceptos")
+  oRoot.createNodeLinks = .F.
+  
+  LOCAL i,oItem,oNode
+  FOR i = 1 TO THIS.Conceptos.Count
+   oItem = THIS.Conceptos.Items[i]
+   oNode = oRoot._Conceptos.addNode("Concepto")
+   oNode.addProp("noPartida",oItem.noPartida)
+   oNode.addProp("codigoDeBarras",oItem.codigoBarras)
+   oNode.addProp("FactorEmpaque",oItem.factorEmpaque)
+   oNode.addProp("empaqueInreso",oItem.empaqueInreso)
+   oNode.addProp("costoPagar",oItem.costoPagar)
+   oNode.addProp("valorIva",oItem.valorIva)
+   oNode.addProp("valorIeps",oItem.valorIeps)
+  ENDFOR
+  
+
+  
+  * Retornamos el XML de la addenda
+  RETURN oXML.ToString()
+  *
+ ENDPROC
+ *
+ENDDEFINE
+
+
+*!*	<alsuper:Alsuper version="1.0" ordenDeCompra="378402" sucursal="10090000" tipoMoneda="Pesos" tipoDeCambio="1" tipoBulto="cajas" valorFlete="0" email="conchita_navarro@imasa.com.mx">
+*!*	 <alsuper:Conceptos>
+*!*	   <alsuper:Concepto noPartida="1" codigoDeBarras="2850727000009" factorEmpaque="1" empaqueInreso="119" costoPagar="187.5" valorIva="0" valorIeps="0" />
+*!*	   <alsuper:Concepto noPartida="2" codigoDeBarras="2850728000008" factorEmpaque="1" empaqueInreso="112" costoPagar="187.5" valorIva="0" valorIeps="0" />
+*!*	 </alsuper:Conceptos>
+*!*	</alsuper:Alsuper>
