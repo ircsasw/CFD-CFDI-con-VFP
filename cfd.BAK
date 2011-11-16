@@ -63,7 +63,8 @@
 **
 ** NOTA IMPORTANTE #5
 ** A partir de la version 3.2 la propiedad Addenda de la clase CFDComprobante cambia su funcionamiento
-** completamente, por lo que ya no es compatible con su uso en versiones anteriores.  
+** completamente, por lo que ya no es compatible con su uso en versiones anteriores. Ver archivo
+** "ADDENDAS.TXT" para informacion sobre como generar addendas.
 **
 **
 ****************************************************************************
@@ -74,7 +75,6 @@
 **                      - Nuevas propiedades nodeName y schemaLocation de la clase ICFDAddenda
 **   
 ** VES  Nov 12, 2011	- Version 3.4
-**						- Nueva propiedad Complemento de la clase CFDComprobante
 **						- Nuevo uso de la propiedad CFDAddenda de CFDComprobante
 **						- Eliminacion de la propiedad CFDAddendas y la clase homonima, introducidos en Oct 10, 2011
 **						- Mejoras en el metodo CrearXML() para incluir la generacion del nodo Addenda y/o Comprobante
@@ -218,7 +218,6 @@
 *!*	-metodoDePago 
 *!*	+Impuestos {CFDImpuestos}
 *!*	-Addenda {ICFDAddenda}
-*|* -Complemento [ICFDAddenda]
 *!*	=cadenaOriginal [2]
 *!* =ubicacionOpenSSL [3]
 *!*	@Sellar(archivo-key, password) [4]
@@ -529,7 +528,6 @@ DEFINE CLASS CFDComprobante AS Custom
  metodoDePago = "" 
  Impuestos = NULL
  Addenda = NULL
- Complemento = NULL  && VES Nov 12, 2011
  
  
  *-- Atributos de CFDI

@@ -71,11 +71,13 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** VES  Nov 16, 2011    - Cambios en el metodo CrearXML y la funcion CFDToCursor para eliminar
+**                        espacios en blanco dentro del valor RFC
+**
 ** VES  Nov 14, 2011    - Cambios en metodo CrearXML para incluir el manejo de addendas
 **                      - Nuevas propiedades nodeName y schemaLocation de la clase ICFDAddenda
 **   
 ** VES  Nov 12, 2011	- Version 3.4
-**						- Nueva propiedad Complemento de la clase CFDComprobante
 **						- Nuevo uso de la propiedad CFDAddenda de CFDComprobante
 **						- Eliminacion de la propiedad CFDAddendas y la clase homonima, introducidos en Oct 10, 2011
 **						- Mejoras en el metodo CrearXML() para incluir la generacion del nodo Addenda y/o Comprobante
@@ -219,7 +221,6 @@
 *!*	-metodoDePago 
 *!*	+Impuestos {CFDImpuestos}
 *!*	-Addenda {ICFDAddenda}
-*|* -Complemento [ICFDAddenda]
 *!*	=cadenaOriginal [2]
 *!* =ubicacionOpenSSL [3]
 *!*	@Sellar(archivo-key, password) [4]
@@ -530,7 +531,6 @@ DEFINE CLASS CFDComprobante AS Custom
  metodoDePago = "" 
  Impuestos = NULL
  Addenda = NULL
- Complemento = NULL  && VES Nov 12, 2011
  
  
  *-- Atributos de CFDI
@@ -793,7 +793,7 @@ DEFINE CLASS CFDComprobante AS Custom
    *-- Nodo "Emisor"
    .XML._Comprobante.addNode("Emisor")
    WITH .XML._Comprobante._Emisor
-    .addProp("rfc",CHRT(THIS._fixStr(THIS.Emisor.rfc),".-",""))
+    .addProp("rfc",CHRT(THIS._fixStr(THIS.Emisor.rfc),".- ",""))  && VES Nov 16, 2011
     .addProp("nombre",THIS._fixStr(THIS.Emisor.nombre))
     .addNode("DomicilioFiscal")
     WITH ._DomicilioFiscal
@@ -830,7 +830,7 @@ DEFINE CLASS CFDComprobante AS Custom
    *-- Nodo "Receptor"
    .XML._Comprobante.addNode("Receptor")
    WITH .XML._Comprobante._Receptor
-    .addProp("rfc",CHRT(THIS._fixStr(THIS.Receptor.rfc),".-",""))
+    .addProp("rfc",CHRT(THIS._fixStr(THIS.Receptor.rfc),".- ",""))   && VES Nov 16, 2011
     .addProp("nombre",THIS._fixStr(THIS.Receptor.nombre))
     .addNode("Domicilio")
     WITH ._Domicilio
@@ -2933,6 +2933,7 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		
 		DO CASE 
 			CASE sAtributeName = "rfc"
+			    sAtributeValues = CHRT(sAtributeValues,".- ","")   && VES Nov 16, 2011   
 				UPDATE (cGenerales) SET Erfc       = sAtributeValues		&& Atributo requerido para la Clave del Registro Federal de Contribuyentes correspondiente al contribuyente emisor del comprobante sin guiones o espacios.
 			CASE sAtributeName = "nombre"
 				UPDATE (cGenerales) SET Enombre    = sAtributeValues		&& Atributo requerido para el nombre o razón social del contribuyente emisor del comprobante.
@@ -3034,6 +3035,7 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		
 		DO CASE
 			CASE sAtributeName = "rfc"
+				sAtributeValues = CHRT(sAtributeValues,".- ","")   && VES Nov 16, 2011
 				UPDATE (cGenerales) SET Rrfc       = sAtributeValues		&& Atributo requerido para precisar la Clave del Registro Federal de Contribuyentes correspondiente al contribuyente receptor del comprobante.
 			CASE sAtributeName = "nombre"
 				UPDATE (cGenerales) SET Rnombre    = sAtributeValues		&& Atributo opcional para precisar el nombre o razón social del contribuyente receptor.
