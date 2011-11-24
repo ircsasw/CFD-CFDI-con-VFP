@@ -71,6 +71,8 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** VES  Nov 21, 2011    - Nuevo metodo getProp() en clase XMLNodeClass
+**
 ** VES  Nov 16, 2011    - Cambios en el metodo CrearXML y la funcion CFDToCursor para eliminar
 **                        espacios en blanco dentro del valor RFC
 **
@@ -2317,6 +2319,25 @@ DEFINE CLASS XmlNodeClass AS custom
 		   THIS.nPropCount=THIS.nPropCount - 1
 		  ENDIF
 	ENDPROC
+	
+	
+	*-- Devuelve el contenido de una propiedad, si la misma existe
+	PROCEDURE getProp
+		LPARAMETERS pcPropName, puDefaultValue
+
+        IF PCOUNT() = 1
+         puDefaultValue = ""
+        ENDIF
+        
+        LOCAL nIndex
+        nIndex = THIS.FindProp(pcPropName) 
+        IF nIndex > 0
+         RETURN THIS.Props[nIndex].Value
+        ELSE
+         RETURN puDefaultValue
+        ENDIF
+	ENDPROC
+	
 
 
 	*-- Permite actualizar el valor de las propiedades del nodo en base a las propiedades del mismo nombre de otro objeto dado.
