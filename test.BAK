@@ -24,7 +24,7 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .XMLversion = 3
+ .XMLversion = 2	&& 2 = CFD, 3 = CFDI
  .incluirBOM = .F.
 ENDWITH
 
@@ -57,6 +57,7 @@ WITH oCFD
  .Descuento = 371.00
  .motivoDescuento = "Anticipo"
  .tipoDeComprobante = "ingreso"
+ 
  .Emisor.RFC = "GOYA780416GM0"
  .Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ" 
  .Emisor.domicilioFiscal.Calle = "Benito Juarez Ote"
@@ -185,7 +186,7 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-*CFDPrint("test.xml",,.T.,"TEST.PDF")
+CFDPrint("test.xml",,.T.,"TEST.PDF")
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados

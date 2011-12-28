@@ -134,3 +134,7 @@ scXML
 El proyecto SCXML trata principalmente de brindar una manera sencilla a los programadores VFP de poder usar un control de versiones con sus Formularios y librerías VCX.
 http://fox.desdeguate.com/scxml/
 
+git community book
+------------------
+http://book.git-scm.com/
+

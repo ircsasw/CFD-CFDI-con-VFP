@@ -1,3 +1,7 @@
+* --
+* -- Este ejemplo genera un CFD version 3.2 utilizando la clase CFD
+* --
+*
 CLOSE ALL
 CLEAR ALL
 CLEAR
@@ -24,7 +28,7 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .XMLversion = 2	&& 2 = CFD, 3 = CFDI
+ .XMLversion = 32	&& 2 = CFD, 3 = CFDI, 22 = CFD 2.2, 32 = CFDI 3.2
  .incluirBOM = .F.
 ENDWITH
 
@@ -43,7 +47,7 @@ ENDIF
 LOCAL oCFD, o
 oCFD = CREATEOBJECT("CFDComprobante")
 WITH oCFD
- .Version = "2.0"
+ .Version = "3.2"	&& Es un valor inicial, dentro de la clase la Version se define a partir de CFDConf.XMLversion
  .Serie = "A"
  .Folio = 25815
  .Fecha = DATETIME()
@@ -51,12 +55,24 @@ WITH oCFD
  .anoAprobacion = 2009
  .formaDePago = "Una sola exhibición"
  .condicionesDePago = "A 30 días"
- .metodoDePago = "Cheque"
  .subTotal = 4371.00
  .Total = 4640.00
  .Descuento = 371.00
  .motivoDescuento = "Anticipo"
  .tipoDeComprobante = "ingreso"
+ 
+ *-- Atributos CFD 3.2 opcionales 
+ .MontoFolioFiscalOrig = NULL
+ .FechaFolioFiscalOrig = {}
+ .SerieFolioFiscalOrig = NULL
+ .FolioFiscalOrig = NULL
+ .NumCtaPago = "4566"
+ .Moneda = "PESOS M.N."
+ .TipoCambio = NULL
+ 
+ *-- Atributos CFD 3.2 requeridos 
+ .LugarExpedicion = "Sucursal A"
+ .metodoDePago = "Cheque"
  
  .Emisor.RFC = "GOYA780416GM0"
  .Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ" 
@@ -69,6 +85,8 @@ WITH oCFD
  .Emisor.domicilioFiscal.Estado = "Nuevo León"
  .Emisor.domicilioFiscal.Pais = "Mexico"
  .Emisor.domicilioFiscal.codigoPostal = "67100"
+ 
+ .Emisor.RegimenFiscal.Regimen = "Actividad Empresarial"
 
  .Emisor.expedidoEn.Calle = "Benito Juarez Ote"
  .Emisor.expedidoEn.noExterior = "106"
@@ -168,14 +186,14 @@ ENDIF
 *-- Se crea el CFD
 *
 ?"- Creando CFD"
-oCFD.CrearXML("test.xml")
+oCFD.CrearXML("test32.xml")
 
 
 
 *-- Se vaaida el CFD
 *
 ?"- Validando CFD"
-IF NOT CFDValidarXML("test.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
+IF NOT CFDValidarXML("test32.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
  ?"ERROR: " + CFDConf.ultimoError
  RETURN
 ELSE 
@@ -186,7 +204,7 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-CFDPrint("test.xml",,.T.,"TEST.PDF")
+CFDPrint("test32.xml",,.T.,"TEST32.PDF")
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
@@ -203,7 +221,7 @@ CFDPrint("test.xml",,.T.,"TEST.PDF")
 *!*	*-- Se imprime el CFD
 *!*	*
 *!*	?"- Imprimendo CFD"
-*!*	CFDPrint("test.xml",.T.)
+*!*	CFDPrint("test32.xml",.T.)
 
 
 

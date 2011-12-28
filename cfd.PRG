@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.4
+** Version: 3.5
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -70,6 +70,19 @@
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
+**
+** ARC  Dic 27, 2011    - Beta de la generacion de comprobantes en version 2.2 y 3.2
+**                      - Se modifica CFDExtraerCadenaOriginal para adaptarla a las versiones 2.2 y 3.2
+**                      - Se modifica CFDValidarXML para adaptarla a las versiones 2.2 y 3.2
+**
+** ARC  Dic 20, 2011    - Version 3.5
+**                      - Inician los cambios para adaptar a las reformas 'no oficiales' para los formatos
+**                        de comprobantes 2.2 y 3.2
+**                      - Se cambia la condicion para validar si se crea el nodo DomiciolioFiscal del Emisor, 
+**                        se verificaba que exista el atributo calle, este atributo es opcional, puede no estar 
+**                        y si requerir el nodo, el unico atributo requerido en el nodo es Pais.
+**                      - Se crea la clase CFDRegimenFiscal para el nodo RegimenFiscal del Emisor requerido en 
+**                        las versiones 2.2 y 3.2
 **
 ** VES  Nov 21, 2011    - Nuevo metodo getProp() en clase XMLNodeClass
 **
@@ -473,7 +486,7 @@ PROCEDURE CFDInit
  *
  PUBLIC CFDConf
  CFDConf = CREATE("Custom")
- CFDConf.addProperty("Version","3.0")
+ CFDConf.addProperty("Version","3.4")
  CFDConf.AddProperty("OpenSSL",ADDBS(FULLPATH(".\SSL")))
  CFDConf.AddProperty("SMTPServer","")
  CFDConf.AddProperty("SMTPPort","")
@@ -488,7 +501,7 @@ PROCEDURE CFDInit
  CFDConf.addProperty("ubicacionRepositorio",".\CFD")
  CFDConf.addProperty("ultimoCertificado",NULL)
  CFDConf.addProperty("formatoImpresion","CFD.FRX")
- CFDConf.addProperty("XMLversion",2)
+ CFDConf.addProperty("XMLversion",2)	&& 2 = CFD 2.0, 3 = CFDI 3.0, 22 = CFD 2.2 y 32 = CFDI 3.2
  CFDConf.addProperty("incluirBOM",.F.)
  
  DECLARE Sleep IN kernel32 INTEGER dwMilliseconds  
@@ -508,7 +521,10 @@ ENDPROC
 DEFINE CLASS CFDComprobante AS Custom
  *
  *-- Atributos requeridos
- Version = IIF(CFDConf.XMLversion=3, "3.0", "2.0")
+ * 
+ *   ARC Dic 20, 2011: Se agregan las nuevas versiones
+ *
+ Version = "2.2"  && IIF(CFDConf.XMLversion=3, "3.0", "2.0")
  Folio = 0
  Fecha = {}
  Sello = ""
@@ -522,7 +538,7 @@ DEFINE CLASS CFDComprobante AS Custom
  Emisor = NULL
  Receptor = NULL
  Conceptos = NULL
- 
+  
  
  *-- Atributos opcionales
  Serie = "" 
@@ -530,15 +546,22 @@ DEFINE CLASS CFDComprobante AS Custom
  condicionesDePago = "" 
  Descuento = 0.00
  motivoDescuento = ""
- metodoDePago = "" 
  Impuestos = NULL
  Addenda = NULL
  
- 
- *-- Atributos de CFDI
+
+ *-- Atributos CFD 2.2 y CFDI 3.2 opcionales 
+ MontoFolioFiscalOrig = NULL
+ FechaFolioFiscalOrig = {}
+ SerieFolioFiscalOrig = NULL
+ FolioFiscalOrig = NULL
+ NumCtaPago = NULL 
  Moneda = NULL
  TipoCambio = NULL
  
+ *-- Atributos CFD 2.2 y CFDI 3.2 requeridos 
+ LugarExpedicion = NULL
+ metodoDePago = ""  && ARC Dic 20, 2011: es requerido en CFD 2.2 y CFDI 3.2
  
  *-- Propiedades
  cadenaOriginal = ""   && Solo-lectura
@@ -754,30 +777,49 @@ DEFINE CLASS CFDComprobante AS Custom
    
    *-- Nodo "Comprobante"
    .XML.addNode("Comprobante")
-   IF THIS.Version > "2.0"  && VES Nov 11, 2011
+   IF ALLTRIM(THIS.Version) = "3.0" OR ALLTRIM(THIS.Version) = "3.2"  && VES Nov 11, 2011 / ARC Dic 27, 2011
     .XML._Comprobante.NameSpace = "cfdi"  && Al anadir el NS "Cfdi" al nodo comprobante, todos los subnodos lo heredaran automaticamente
    ENDIF
    WITH .XML._Comprobante
-    IF ALLTRIM(THIS.version) = "2.0"
+    DO CASE 
+      CASE ALLTRIM(THIS.version) = "2.0"
     	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd")
-   	ELSE 
+      CASE ALLTRIM(THIS.version) = "3.0"
    		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd")
-   	ENDIF 
+   	  CASE ALLTRIM(THIS.version) = "2.2"
+    	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
+    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
+   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv22.xsd")
+      CASE ALLTRIM(THIS.version) = "3.2"
+   		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
+    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
+   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd")
+   	ENDCASE  
     .addProp("version",THIS._fixStr(THIS.version))
     .addProp("serie",THIS._fixStr(THIS.serie),CFD_OPCIONAL)
     .addProp("folio",THIS._fixStr(STR(THIS.folio,10,0)))
     .addProp("fecha",THIS._fixStr(THIS.fecha))
-    IF ALLTRIM(THIS.version) = "2.0"
+    IF ALLTRIM(THIS.version) = "2.0" OR ALLTRIM(THIS.version) = "2.2"
 	    .addProp("noAprobacion",THIS._fixStr(STR(THIS.noAprobacion,10,0)))
     	.addProp("anoAprobacion",THIS._fixStr(STR(THIS.anoAprobacion,10,0)))
-    ELSE 
-    	.addProp("Moneda",THIS._fixStr(THIS.moneda),CFD_OPCIONAL)
-    	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)   
     ENDIF 
+    IF ALLTRIM(THIS.version) = "2.2" OR ALLTRIM(THIS.version) = "3.0" OR ALLTRIM(THIS.version) = "3.2"
+    	.addProp("Moneda",THIS._fixStr(THIS.moneda),CFD_OPCIONAL)
+    	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)
+    ENDIF  
+    IF ALLTRIM(THIS.version) = "2.2" OR ALLTRIM(THIS.version) = "3.2"
+    	.addProp("MontoFolioFiscalOrig",THIS._fixStr(THIS.MontoFolioFiscalOrig),CFD_OPCIONAL)
+    	.addProp("FechaFolioFiscalOrig",THIS._fixStr(THIS.FechaFolioFiscalOrig),CFD_OPCIONAL)
+    	.addProp("SerieFolioFiscalOrig",THIS._fixStr(THIS.SerieFolioFiscalOrig),CFD_OPCIONAL)
+    	.addProp("FolioFiscalOrig",THIS._fixStr(THIS.FolioFiscalOrig),CFD_OPCIONAL)
+    	.addProp("NumCtaPago",THIS._fixStr(THIS.NumCtaPago),CFD_OPCIONAL)
+    	.addProp("LugarExpedicion",THIS._fixStr(THIS.LugarExpedicion))
+    ENDIF 
+   	.addProp("metodoDePago",THIS._fixStr(THIS.metodoDePago),CFD_OPCIONAL)
     .addProp("formaDePago",THIS._fixStr(THIS.formaDePago))
     *.addProp("",THIS._fixStr(THIS.))
     .addProp("condicionesDePago",THIS._fixStr(THIS.condicionesDePago),CFD_OPCIONAL)
@@ -785,7 +827,6 @@ DEFINE CLASS CFDComprobante AS Custom
     .addProp("descuento",THIS._fixStr(TRANSFORM(THIS.Descuento,"@Z 999999999999.99")),CFD_OPCIONAL)
     .addProp("motivoDescuento",THIS._fixStr(THIS.motivoDescuento),CFD_OPCIONAL)
     .addProp("total",THIS._fixStr(STR(THIS.total,15,2)))
-    .addProp("metodoDePago",THIS._fixStr(THIS.metodoDePago),CFD_OPCIONAL)
     .addProp("tipoDeComprobante",THIS._fixStr(THIS.tipoDeComprobante))
     .addProp("noCertificado",THIS.noCertificado)
     .addProp("certificado",THIS.Certificado)
@@ -797,21 +838,24 @@ DEFINE CLASS CFDComprobante AS Custom
    WITH .XML._Comprobante._Emisor
     .addProp("rfc",CHRT(THIS._fixStr(THIS.Emisor.rfc),".- ",""))  && VES Nov 16, 2011
     .addProp("nombre",THIS._fixStr(THIS.Emisor.nombre))
-    .addNode("DomicilioFiscal")
-    WITH ._DomicilioFiscal
-     .addProp("calle",THIS._fixStr(THIS.Emisor.DomicilioFiscal.Calle))
-     .addProp("noExterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
-     .addProp("noInterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
-     .addProp("colonia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.colonia),CFD_OPCIONAL)
-     .addProp("localidad",THIS._fixStr(THIS.Emisor.DomicilioFiscal.localidad),CFD_OPCIONAL)
-     .addProp("referencia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.referencia),CFD_OPCIONAL)
-     .addProp("municipio",THIS._fixStr(THIS.Emisor.DomicilioFiscal.municipio))
-     .addProp("estado",THIS._fixStr(THIS.Emisor.DomicilioFiscal.estado))
-     .addProp("pais",THIS._fixStr(THIS.Emisor.DomicilioFiscal.pais))
-     .addProp("codigoPostal",THIS._fixStr(THIS.Emisor.DomicilioFiscal.codigoPostal),CFD_OPCIONAL)
-    ENDWITH
     
-    IF NOT EMPTY(THIS.Emisor.ExpedidoEn.Calle)
+    IF NOT EMPTY(THIS.Emisor.domicilioFiscal.Pais) && ARC Dic 27, 2011: domiciolio del emisor es opcional en 2.2 y 3.2
+      .addNode("DomicilioFiscal")
+      WITH ._DomicilioFiscal
+       .addProp("calle",THIS._fixStr(THIS.Emisor.DomicilioFiscal.Calle))
+       .addProp("noExterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
+       .addProp("noInterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
+       .addProp("colonia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.colonia),CFD_OPCIONAL)
+       .addProp("localidad",THIS._fixStr(THIS.Emisor.DomicilioFiscal.localidad),CFD_OPCIONAL)
+       .addProp("referencia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.referencia),CFD_OPCIONAL)
+       .addProp("municipio",THIS._fixStr(THIS.Emisor.DomicilioFiscal.municipio))
+       .addProp("estado",THIS._fixStr(THIS.Emisor.DomicilioFiscal.estado))
+       .addProp("pais",THIS._fixStr(THIS.Emisor.DomicilioFiscal.pais))
+       .addProp("codigoPostal",THIS._fixStr(THIS.Emisor.DomicilioFiscal.codigoPostal),CFD_OPCIONAL)
+      ENDWITH
+    ENDIF 
+
+    IF NOT EMPTY(THIS.Emisor.ExpedidoEn.Pais) && ARC Dic 27, 2011: Ya que Pais es el unico atributo requerido
      .addNode("ExpedidoEn")
      WITH ._ExpedidoEn
       .addProp("calle",THIS._fixStr(THIS.Emisor.ExpedidoEn.Calle))
@@ -826,6 +870,13 @@ DEFINE CLASS CFDComprobante AS Custom
       .addProp("codigoPostal",THIS._fixStr(THIS.Emisor.ExpedidoEn.codigoPostal),CFD_OPCIONAL)
      ENDWITH
     ENDIF
+    
+    IF ALLTRIM(THIS.version) = "2.2" OR ALLTRIM(THIS.version) = "3.2"
+      .addNode("RegimenFiscal")
+      WITH ._RegimenFiscal
+        .addProp("Regimen",THIS._fixStr(THIS.Emisor.RegimenFiscal.Regimen))
+      ENDWITH 
+    ENDIF 
    ENDWITH
    
    
@@ -1067,17 +1118,18 @@ DEFINE CLASS CFDPersona AS Custom
  *
  *-- Atributos requeridos
  RFC = ""
- Nombre = ""
- domicilioFiscal = NULL
+ RegimenFiscal = NULL	&& ARC Dic 20, 2011: Requerido solo para Emisor
  
  *-- Atributos opcionales
  expedidoEn = NULL
- 
+ Nombre = ""
+ domicilioFiscal = NULL
  
  *-- Contructor de la clase
  PROCEDURE Init
   THIS.domicilioFiscal = CREATEOBJECT("CFDDireccion")
   THIS.expedidoEn = CREATEOBJECT("CFDDireccion")  
+  THIS.RegimenFiscal = CREATEOBJECT("CFDRegimenFiscal")
  ENDPROC
  *
 ENDDEFINE
@@ -1103,6 +1155,19 @@ DEFINE CLASS CFDDireccion AS Custom
  Colonia = ""
  Localidad = ""
  Referencia = ""
+ *
+ENDDEFINE
+
+
+
+*-- CFDRegimenFiscal (Clase)
+*   Representa un regimen fiscal dentro de un
+*   comprobante digital
+*
+DEFINE CLASS CFDRegimenFiscal AS Custom
+ *
+ *-- Atributos requeridos
+ Regimen = ""
  *
 ENDDEFINE
 
@@ -1144,14 +1209,13 @@ DEFINE CLASS CFDConcepto AS Custom
  Descripcion = ""
  valorUnitario = 0.00
  Importe = 0.00
+ Unidad = ""
  
  
  *-- Atributos opcionales
  noIdentificacion = ""
  informacionAduanera = NULL
  cuentaPredial = NULL
- Unidad = ""
-
 
  *-- Constructor de la clase
  PROCEDURE Init
@@ -1171,9 +1235,9 @@ DEFINE CLASS CFDInformacionAduanera AS Custom
  *-- Atributos obligatorios
  Numero = ""
  Fecha = {}
- Aduana = ""
  
  *-- Atributos opcionales
+ Aduana = ""
  *
 ENDDEFINE
 
@@ -3808,7 +3872,18 @@ FUNCTION CFDExtraerCadenaOriginal(pcXML, pcOpenSSL)
  cXSLFile = FORCEEXT(cBATFile,"XSLT")
  cXSLTProc = GetShortName(pcOpenSSL + "XSLTPROC.EXE")
   
- cBuff = FILETOSTR(pcOpenSSL + IIF(CFDConf.XMLversion=3, "cadenaoriginal_3_0_local.xslt", "cadenaoriginal_2_0_local.xslt"))
+ *-- ARC Dic 27, 2011: Define el XSLT local a utilizar
+ DO CASE 
+ 	CASE CFDConf.XMLversion = 2
+ 		cXsltFile = "cadenaoriginal_2_0_local.xslt"
+ 	CASE CFDConf.XMLversion = 3
+ 		cXsltFile = "cadenaoriginal_3_0_local.xslt"
+ 	CASE CFDConf.XMLversion = 22
+ 		cXsltFile = "cadenaoriginal_2_2_local.xslt"
+ 	CASE CFDConf.XMLversion = 32
+ 		cXsltFile = "cadenaoriginal_3_2_local.xslt"
+ ENDCASE 
+ cBuff = FILETOSTR(pcOpenSSL + cXsltFile)
  cBuff = STRT(cBuff,"<ssl-path>",CHRT(pcOpenSSL,"\","/"))
  STRTOFILE(cBuff, cXSLFile)
 
@@ -4319,18 +4394,45 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
  ENDIF
 
  *-- Obtiene el nombre del nodo root, puede ser 'Comprobante' para CFD o 'cfdi:Comprobante' para CFDI
+ *
+ *   ARC Dic 27, 2011: Se adapta para obtener la version del comprobante desde el atributo version del XML
+ *                     el atributo puede ser del nodo Comprobante para CFD 2.0 y 2.2 o del
+ *                     nodo cfdi:Comprobante para CFDI 3.0 y 3.2
+ *
  oRootNode = oXML.documentElement
  cRootTagName = oRootNode.tagName
  
- IF cRootTagName = "cfdi:Comprobante"
-  lcXSDFilev = "cfdv3.xsd"
-  lcURLXSDv  = "http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd"
-  lcURLXNSv  = "http://www.sat.gob.mx/cfd/3"
- ELSE 
-  lcXSDFilev = "cfdv2.xsd"
-  lcURLXSDv = "http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd"
-  lcURLXNSv  = "http://www.sat.gob.mx/cfd/2"
- ENDIF 
+ * Selecciona el nodo root para sacar el atributo version
+ olNode = oXML.selectSingleNode("//"+cRootTagName)
+ IF ISNULL(olNode) THEN 
+   MESSAGEBOX("XML inválido."+CHR(13)+"Nodo //"+cRootTagName+" no presente.", 16, "Sistema")
+   lResult = .F.
+   RETURN .F.
+ ENDIF
+
+ sAtributeValue = olNode.getAttribute("version")
+
+ DO CASE 
+   CASE sAtributeValue = "2.0"
+     lcXSDFilev = "cfdv2.xsd"
+     lcURLXSDv = "http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd"
+     lcURLXNSv  = "http://www.sat.gob.mx/cfd/2"   
+
+   CASE sAtributeValue = "3.0"
+     lcXSDFilev = "cfdv3.xsd"
+     lcURLXSDv  = "http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd"
+     lcURLXNSv  = "http://www.sat.gob.mx/cfd/3"
+    
+   CASE sAtributeValue = "2.2"
+     lcXSDFilev = "cfdv22.xsd"
+     lcURLXSDv = "http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv22.xsd"
+     lcURLXNSv  = "http://www.sat.gob.mx/cfd/2"   
+
+   CASE sAtributeValue = "3.2"
+     lcXSDFilev = "cfdv32.xsd"
+     lcURLXSDv  = "http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd"
+     lcURLXNSv  = "http://www.sat.gob.mx/cfd/3"
+ ENDCASE  
  
  
  *-- Si no se cuenta con una copia local del XSD, se descarga
@@ -5095,3 +5197,24 @@ LPARAMETERS pcItemList,p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16
  *
 ENDPROC
 
+
+*-- obtenVersion
+*   Funcion para regresar la version del comprobante a generar
+*
+FUNCTION obtenVersion
+LPARAMETERS xmlVer
+ *
+  DO CASE 
+   CASE xmlVer = 2
+     RETURN "2.0"
+   CASE xmlVer = 3
+     RETURN "3.0"
+   CASE xmlVer = 22
+     RETURN "2.2"
+   CASE xmlVer = 32
+     RETURN "3.2"
+   OTHERWISE 
+     RETURN "2.0"
+ ENDCASE
+ * 
+ENDFUNC  
