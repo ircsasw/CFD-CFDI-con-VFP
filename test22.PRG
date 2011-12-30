@@ -1,5 +1,7 @@
 * --
-* -- Este ejemplo genera un CFD version 2.2 utilizando la clase CFD
+* -- Este ejemplo genera un CFD version 2.2 utilizando la clase CFD. A diferencia
+*    del ejemplo TEST, en este ejemplo la version del CFD se especifica al momento
+*    de crear el comprobante y no mediante la propiedad XMLVersion. 
 * --
 *
 CLOSE ALL
@@ -28,7 +30,6 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .XMLversion = 22	&& 2 = CFD, 3 = CFDI, 22 = CFD 2.2, 32 = CFDI 3.2
  .incluirBOM = .F.
 ENDWITH
 
@@ -45,9 +46,8 @@ ENDIF
     
 ?"- Generando CFD..."    
 LOCAL oCFD, o
-oCFD = CREATEOBJECT("CFDComprobante")
+oCFD = CREATEOBJECT("CFDComprobante", CFDVersions.CFD_22)
 WITH oCFD
- .Version = "2.2"	&& Es un valor inicial, dentro de la clase la Version se define a partir de CFDConf.XMLversion
  .Serie = "A"
  .Folio = 25815
  .Fecha = DATETIME()
@@ -131,7 +131,7 @@ WITH oCFD
  o.informacionAduanera.aduana = "240"
  
 ENDWITH
-
+??"...Version " + CFDVersions.ToLongString(CFDVersions.fromString(oCFD.Version))
 
 *-- Se carga la informacion del certificado 
 *

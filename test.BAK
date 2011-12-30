@@ -24,7 +24,7 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .XMLversion = 2	&& 2 = CFD, 3 = CFDI
+ .XMLversion = CFDVersions.CFD_20
  .incluirBOM = .F.
 ENDWITH
 
@@ -43,7 +43,6 @@ ENDIF
 LOCAL oCFD, o
 oCFD = CREATEOBJECT("CFDComprobante")
 WITH oCFD
- .Version = "3.0"
  .Serie = "A"
  .Folio = 25815
  .Fecha = DATETIME()
@@ -113,6 +112,7 @@ WITH oCFD
  o.informacionAduanera.aduana = "240"
  
 ENDWITH
+??"...Version " + CFDVersions.ToLongString(CFDVersion.fromString(oCFD.Version))
 
 
 *-- Se carga la informacion del certificado 

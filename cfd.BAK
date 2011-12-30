@@ -71,6 +71,16 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** VES	Dic 30, 2011	- Nueva enumeracion CFDVersions (CFDVersionsEnum)
+**						- Se cambio el objeto CFDConf de buffer a instancia de clase para poder implementar
+**						  un validador para la propiedad XMLVersion.
+**						- La propiedad Version de CFDConf ahora es solo-lectura.
+**                      - Evento Assign en propiedad Version de CFDComprobante y XMLVersion de CFDConf
+**						  para verificar que el valor indicado sea correcto.
+**						- Modificacion en constructor de CFDComprobante para asignar por omision el valor
+**						  de CFDConf.XMLVersion a la propiedad Version.
+**						
+**
 ** ARC  Dic 27, 2011    - Beta de la generacion de comprobantes en version 2.2 y 3.2
 **                      - Se modifica CFDExtraerCadenaOriginal para adaptarla a las versiones 2.2 y 3.2
 **                      - Se modifica CFDValidarXML para adaptarla a las versiones 2.2 y 3.2
@@ -482,27 +492,15 @@
 *   configuraciones generales de uso en varios de 
 *   los metodos y funciones de la libreria
 *
+*   VES Dic 30, 2011
+*   Se aprovecha para declarar algunas enumeraciones de
+*   uso en la clase
+*
 PROCEDURE CFDInit
  *
- PUBLIC CFDConf
- CFDConf = CREATE("Custom")
- CFDConf.addProperty("Version","3.4")
- CFDConf.AddProperty("OpenSSL",ADDBS(FULLPATH(".\SSL")))
- CFDConf.AddProperty("SMTPServer","")
- CFDConf.AddProperty("SMTPPort","")
- CFDConf.AddProperty("SMTPUseSSL",.T.)
- CFDConf.AddProperty("SMTPAuthenticate",.T.)
- CFDConf.AddProperty("SMTPUserName","")
- CFDConf.AddProperty("SMTPPassword","")
- CFDConf.AddProperty("MailSender","")
- CFDConf.AddProperty("UltimoError","")
- CFDConf.addProperty("modoPruebas",.F.)
- CFDConf.addProperty("metodoDigest","md5")
- CFDConf.addProperty("ubicacionRepositorio",".\CFD")
- CFDConf.addProperty("ultimoCertificado",NULL)
- CFDConf.addProperty("formatoImpresion","CFD.FRX")
- CFDConf.addProperty("XMLversion",2)	&& 2 = CFD 2.0, 3 = CFDI 3.0, 22 = CFD 2.2 y 32 = CFDI 3.2
- CFDConf.addProperty("incluirBOM",.F.)
+ PUBLIC CFDVersions,CFDConf
+ CFDVersions = CREATE("CFDVersionsEnum")
+ CFDConf = CREATE("CFDConf")
  
  DECLARE Sleep IN kernel32 INTEGER dwMilliseconds  
  
@@ -510,9 +508,135 @@ PROCEDURE CFDInit
     STRING    lpszLongPath,;
     STRING  @ lpszShortPath,;
     INTEGER   cchBuffer
-
  *
 ENDPROC
+
+
+*-- CFDVersionsEnum (Enumeracion)
+*   Lista de valores validos para Version
+*
+DEFINE CLASS CFDVersionsEnum AS Custom
+ *
+ CFD_20 = 2
+ CFD_22 = 22
+ CFDi_30 = 30
+ CFDi_32 = 32
+ validVersionList = "[2][22][3][32]"
+
+ PROCEDURE ToString(pnVersion)
+  DO CASE
+     CASE pnVersion = THIS.CFD_20
+          RETURN "2.0"
+          
+     CASE pnVersion = THIS.CFD_22
+          RETURN "2.2"
+          
+     CASE pnVersion = THIS.CFD_30
+          RETURN "3.0"
+          
+     CASE pnVersion = THIS.CFD_32
+          RETURN "3.2"
+          
+     OTHERWISE
+          RETURN ""
+  ENDCASE
+ ENDPROC
+
+ PROCEDURE FromString(pcVersion)
+  DO CASE
+     CASE pcVersion = "2.0"
+          RETURN THIS.CFD_20
+          
+     CASE pcVersion = "2.2"
+          RETURN THIS.CFD_22
+
+     CASE pcVersion = "3.0"
+          RETURN THIS.CFD_30
+
+     CASE pcVersion = "3.2"
+          RETURN THIS.CFD_32
+          
+     OTHERWISE
+          RETURN 0
+  ENDCASE
+ ENDPROC
+ 
+ PROCEDURE ToLongString(pcVersion)
+  DO CASE
+     CASE pcVersion = THIS.CFD_20
+          RETURN "CFD 2.0"
+          
+     CASE pcVersion = THIS.CFD_22
+          RETURN "CFD 2.2"
+          
+     CASE pcVersion = THIS.CFD_30
+          RETURN "CFD 3.0"
+          
+     CASE pcVersion = THIS.CFD_32
+          RETURN "CFD 3.2"
+          
+     OTHERWISE
+          RETURN "Valor incorrecto (" + pcVersion + ")"
+  ENDCASE
+ ENDPROC
+ 
+ PROCEDURE Validate(vNewVal, puCurValue)
+  *
+  LOCAL uValue
+  uValue = puCurValue
+  
+  IF "[" + ALLT(STR(m.vNewVal)) + "]" $ CFDVersions.validVersionList
+   uValue = m.vNEwVal
+  ELSE
+   MESSAGEBOX("El valor de version indicado no es correcto.",16,"CFD") 
+  ENDIF
+
+  RETURN uValue  
+  *
+ ENDPROC
+ *
+ENDDEFINE
+
+
+*-- CFDConf (Clase)
+*   Configuraciones generales de uso en la libreria
+*
+DEFINE CLASS CFDConf AS Custom
+ *
+ Version = "3.5"
+ OpenSSL = ""
+ SMTPServer = ""
+ SMTPPort = ""
+ SMTPUseSSL = .T.
+ SMTPAuthenticate = .T.
+ SMTPUserName = ""
+ SMTPPassword = ""
+ MailSender = ""
+ UltimoError = ""
+ modoPruebas = .F.
+ metodoDigest = "md5"
+ ubicacionRepositorio = ".\CFD"
+ ultimoCertificado = NULL
+ formatoImpresion = "CFD.FRX"
+ XMLVersion = 0
+ incluirBOM = .F.
+
+ PROCEDURE Init
+  THIS.Version = CFDVersions.CFDi_32
+  THIS.OpenSSL = ADDBS(FULLPATH(".\SSL"))
+  THIS.XMLVersion = CFDVersions.CFDi_32
+ ENDPROC
+  
+ PROCEDURE Version_Assign(vNEwVal)
+ ENDPROC
+ 
+ PROCEDURE XMLVersion_Assign(vNewVal)
+  THIS.XMLVersion = CFDVersions.Validate(m.vNewVal, THIS.XMLVersion)
+ ENDPROC
+ *
+ENDDEFINE
+
+
 
 
 *-- CFDComprobante (Clase)
@@ -524,7 +648,7 @@ DEFINE CLASS CFDComprobante AS Custom
  * 
  *   ARC Dic 20, 2011: Se agregan las nuevas versiones
  *
- Version = "2.2"  && IIF(CFDConf.XMLversion=3, "3.0", "2.0")
+ Version = ""  && VES Dic 30, 2011: Se elimino el valor por omision para establecerlo en el constructor
  Folio = 0
  Fecha = {}
  Sello = ""
@@ -577,13 +701,36 @@ DEFINE CLASS CFDComprobante AS Custom
  
  
  *-- Constructor de la clase
- PROCEDURE Init
+ *   
+ *   VES Dic 30, 2011: Se incluyo el parametro opcional pcVersion
+ *
+ PROCEDURE Init(pnVersion)
+  *
+  IF PCOUNT() = 0   && Si no se indico una version, se asume la version indicada en CFDConf.XMLVersion
+   pnVersion = CFDConf.XMLVersion
+  ENDIF
+  
+  THIS.Version = pnVersion
   THIS.Emisor = CREATEOBJECT("CFDPersona")
   THIS.Receptor = CREATEOBJECT("CFDPersona")
   THIS.Conceptos = CREATEOBJECT("CFDConceptos")
   THIS.Impuestos = CREATEOBJECT("CFDImpuestos")
   THIS.ubicacionOpenSSL = CFDConf.OpenSSL
+  *
  ENDPROC
+ 
+ 
+ *-- Setter para propiedad Version
+ *
+ PROCEDURE Version_Assign(vNewVal)
+  LOCAL nVersion
+  nVersion = CFDVersions.Validate(m.vNewVal, 0)
+  IF nVersion > 0
+   THIS.Version = CFDVersions.ToString(nVersion)
+  ENDIF
+ ENDPROC
+
+ 
  
  
  *-- Metodos
@@ -768,8 +915,9 @@ DEFINE CLASS CFDComprobante AS Custom
   
   CFDConf.ultimoError = ""
 
-  LOCAL oParser
+  LOCAL oParser,nVersion
   oParser = CREATEOBJECT("XmlParser")
+  nVersion = CFDVersions.fromString(THIS.Version)
   WITH oParser
    *
    .indentString = ""
@@ -777,24 +925,27 @@ DEFINE CLASS CFDComprobante AS Custom
    
    *-- Nodo "Comprobante"
    .XML.addNode("Comprobante")
-   IF ALLTRIM(THIS.Version) = "3.0" OR ALLTRIM(THIS.Version) = "3.2"  && VES Nov 11, 2011 / ARC Dic 27, 2011
+   IF INLIST(nVersion, CFDVersions.CFDi_30, CFDVersions.CFDi_32)
     .XML._Comprobante.NameSpace = "cfdi"  && Al anadir el NS "Cfdi" al nodo comprobante, todos los subnodos lo heredaran automaticamente
    ENDIF
    WITH .XML._Comprobante
     DO CASE 
-      CASE ALLTRIM(THIS.version) = "2.0"
+      CASE nVersion = CFDVersions.CFD_20
     	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd")
-      CASE ALLTRIM(THIS.version) = "3.0"
+   		
+      CASE nVersion = CFDVersions.CFDi_30
    		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd")
-   	  CASE ALLTRIM(THIS.version) = "2.2"
+   		
+   	  CASE nVersion = CFDVersions.CFD_22
     	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv22.xsd")
-      CASE ALLTRIM(THIS.version) = "3.2"
+   		
+      CASE nVersion = CFDVersions.CFDi_32
    		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd")
@@ -803,15 +954,15 @@ DEFINE CLASS CFDComprobante AS Custom
     .addProp("serie",THIS._fixStr(THIS.serie),CFD_OPCIONAL)
     .addProp("folio",THIS._fixStr(STR(THIS.folio,10,0)))
     .addProp("fecha",THIS._fixStr(THIS.fecha))
-    IF ALLTRIM(THIS.version) = "2.0" OR ALLTRIM(THIS.version) = "2.2"
+    IF INLIST(nVersion, CFDVersions.CFD_20, CFDVersions.CFD_22)
 	    .addProp("noAprobacion",THIS._fixStr(STR(THIS.noAprobacion,10,0)))
     	.addProp("anoAprobacion",THIS._fixStr(STR(THIS.anoAprobacion,10,0)))
     ENDIF 
-    IF ALLTRIM(THIS.version) = "2.2" OR ALLTRIM(THIS.version) = "3.0" OR ALLTRIM(THIS.version) = "3.2"
+    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_30, CFDVErsions.CFDi_32)
     	.addProp("Moneda",THIS._fixStr(THIS.moneda),CFD_OPCIONAL)
     	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)
     ENDIF  
-    IF ALLTRIM(THIS.version) = "2.2" OR ALLTRIM(THIS.version) = "3.2"
+    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)
     	.addProp("MontoFolioFiscalOrig",THIS._fixStr(THIS.MontoFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FechaFolioFiscalOrig",THIS._fixStr(THIS.FechaFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("SerieFolioFiscalOrig",THIS._fixStr(THIS.SerieFolioFiscalOrig),CFD_OPCIONAL)
@@ -871,7 +1022,7 @@ DEFINE CLASS CFDComprobante AS Custom
      ENDWITH
     ENDIF
     
-    IF ALLTRIM(THIS.version) = "2.2" OR ALLTRIM(THIS.version) = "3.2"
+    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)  && TODO: Regimen Fiscal puede ser multiples nodos
       .addNode("RegimenFiscal")
       WITH ._RegimenFiscal
         .addProp("Regimen",THIS._fixStr(THIS.Emisor.RegimenFiscal.Regimen))
@@ -3874,13 +4025,13 @@ FUNCTION CFDExtraerCadenaOriginal(pcXML, pcOpenSSL)
   
  *-- ARC Dic 27, 2011: Define el XSLT local a utilizar
  DO CASE 
- 	CASE CFDConf.XMLversion = 2
+ 	CASE CFDConf.XMLversion = CFDVErsions.CFD_20
  		cXsltFile = "cadenaoriginal_2_0_local.xslt"
- 	CASE CFDConf.XMLversion = 3
+ 	CASE CFDConf.XMLversion = CFDVersions.CFDi_30
  		cXsltFile = "cadenaoriginal_3_0_local.xslt"
- 	CASE CFDConf.XMLversion = 22
+ 	CASE CFDConf.XMLversion = CFDVersions.CFD_22
  		cXsltFile = "cadenaoriginal_2_2_local.xslt"
- 	CASE CFDConf.XMLversion = 32
+ 	CASE CFDConf.XMLversion = CFDVersions.CFDi_32
  		cXsltFile = "cadenaoriginal_3_2_local.xslt"
  ENDCASE 
  cBuff = FILETOSTR(pcOpenSSL + cXsltFile)
@@ -5198,23 +5349,10 @@ LPARAMETERS pcItemList,p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16
 ENDPROC
 
 
-*-- obtenVersion
-*   Funcion para regresar la version del comprobante a generar
+* obtenVersion
+* Se mantiene por compatibilidad. En su lugar, debe usarse
+* el metodo ToString() de CFDVersions
 *
-FUNCTION obtenVersion
-LPARAMETERS xmlVer
- *
-  DO CASE 
-   CASE xmlVer = 2
-     RETURN "2.0"
-   CASE xmlVer = 3
-     RETURN "3.0"
-   CASE xmlVer = 22
-     RETURN "2.2"
-   CASE xmlVer = 32
-     RETURN "3.2"
-   OTHERWISE 
-     RETURN "2.0"
- ENDCASE
- * 
-ENDFUNC  
+PROCEDURE obtenVersion(pnVersion)
+ RETURN CFDVersions.ToString(pnVersion)
+ENDPROC
