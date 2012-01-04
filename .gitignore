@@ -1,6 +1,6 @@
-.bak
-.fxp
-.tmp
-.TMP
-.BAK
-.FXP
+*.bak
+*.fxp
+*.tmp
+*.TMP
+*.BAK
+*.FXP

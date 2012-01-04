@@ -531,10 +531,10 @@ DEFINE CLASS CFDVersionsEnum AS Custom
      CASE pnVersion = THIS.CFD_22
           RETURN "2.2"
           
-     CASE pnVersion = THIS.CFD_30
+     CASE pnVersion = THIS.CFDi_30
           RETURN "3.0"
           
-     CASE pnVersion = THIS.CFD_32
+     CASE pnVersion = THIS.CFDi_32
           RETURN "3.2"
           
      OTHERWISE
@@ -551,10 +551,10 @@ DEFINE CLASS CFDVersionsEnum AS Custom
           RETURN THIS.CFD_22
 
      CASE pcVersion = "3.0"
-          RETURN THIS.CFD_30
+          RETURN THIS.CFDi_30
 
      CASE pcVersion = "3.2"
-          RETURN THIS.CFD_32
+          RETURN THIS.CFDi_32
           
      OTHERWISE
           RETURN 0
@@ -569,11 +569,11 @@ DEFINE CLASS CFDVersionsEnum AS Custom
      CASE pcVersion = THIS.CFD_22
           RETURN "CFD 2.2"
           
-     CASE pcVersion = THIS.CFD_30
-          RETURN "CFD 3.0"
+     CASE pcVersion = THIS.CFDi_30
+          RETURN "CFDi 3.0"
           
-     CASE pcVersion = THIS.CFD_32
-          RETURN "CFD 3.2"
+     CASE pcVersion = THIS.CFDi_32
+          RETURN "CFDi 3.2"
           
      OTHERWISE
           RETURN "Valor incorrecto (" + pcVersion + ")"
@@ -702,7 +702,7 @@ DEFINE CLASS CFDComprobante AS Custom
  
  *-- Constructor de la clase
  *   
- *   VES Dic 30, 2011: Se incluyo el parametro opcional pcVersion
+ *   VES Dic 30, 2011: Se incluyo el parametro opcional pnVersion
  *
  PROCEDURE Init(pnVersion)
   *
@@ -988,7 +988,13 @@ DEFINE CLASS CFDComprobante AS Custom
    .XML._Comprobante.addNode("Emisor")
    WITH .XML._Comprobante._Emisor
     .addProp("rfc",CHRT(THIS._fixStr(THIS.Emisor.rfc),".- ",""))  && VES Nov 16, 2011
-    .addProp("nombre",THIS._fixStr(THIS.Emisor.nombre))
+    IF INLIST(nVersion, CFDVersions.CFD_20, CFDVersions.CFDi_30)  && ARC Ene 03, 2012: Nombre de Emisor opcional en 2.2 y 3.2
+      .addProp("nombre",THIS._fixStr(THIS.Emisor.nombre))
+    ELSE 
+      IF NOT EMPTY(THIS.Emisor.nombre)
+        .addProp("nombre",THIS._fixStr(THIS.Emisor.nombre))
+      ENDIF 
+    ENDIF 
     
     IF NOT EMPTY(THIS.Emisor.domicilioFiscal.Pais) && ARC Dic 27, 2011: domiciolio del emisor es opcional en 2.2 y 3.2
       .addNode("DomicilioFiscal")
@@ -1035,20 +1041,25 @@ DEFINE CLASS CFDComprobante AS Custom
    .XML._Comprobante.addNode("Receptor")
    WITH .XML._Comprobante._Receptor
     .addProp("rfc",CHRT(THIS._fixStr(THIS.Receptor.rfc),".- ",""))   && VES Nov 16, 2011
-    .addProp("nombre",THIS._fixStr(THIS.Receptor.nombre))
-    .addNode("Domicilio")
-    WITH ._Domicilio
-     .addProp("calle",THIS._fixStr(THIS.Receptor.DomicilioFiscal.Calle),CFD_OPCIONAL)
-     .addProp("noExterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
-     .addProp("noInterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
-     .addProp("colonia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.colonia),CFD_OPCIONAL)
-     .addProp("localidad",THIS._fixStr(THIS.Receptor.DomicilioFiscal.localidad),CFD_OPCIONAL)
-     .addProp("referencia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.referencia),CFD_OPCIONAL)
-     .addProp("municipio",THIS._fixStr(THIS.Receptor.DomicilioFiscal.municipio),CFD_OPCIONAL)
-     .addProp("estado",THIS._fixStr(THIS.Receptor.DomicilioFiscal.estado),CFD_OPCIONAL)
-     .addProp("pais",THIS._fixStr(THIS.Receptor.DomicilioFiscal.pais))
-     .addProp("codigoPostal",THIS._fixStr(THIS.Receptor.DomicilioFiscal.codigoPostal),CFD_OPCIONAL)
-    ENDWITH
+    IF NOT EMPTY(THIS.Receptor.nombre)   && ARC Ene 03, 2012: Nombre de Receptor es opcional
+      .addProp("nombre",THIS._fixStr(THIS.Receptor.nombre))
+    ENDIF 
+    
+    IF NOT EMPTY(THIS.Receptor.DomicilioFiscal.pais) && ARC Ene 03, 2012: Ya que Pais es el unico atributo requerido
+      .addNode("Domicilio")
+      WITH ._Domicilio
+       .addProp("calle",THIS._fixStr(THIS.Receptor.DomicilioFiscal.Calle),CFD_OPCIONAL)
+       .addProp("noExterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
+       .addProp("noInterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
+       .addProp("colonia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.colonia),CFD_OPCIONAL)
+       .addProp("localidad",THIS._fixStr(THIS.Receptor.DomicilioFiscal.localidad),CFD_OPCIONAL)
+       .addProp("referencia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.referencia),CFD_OPCIONAL)
+       .addProp("municipio",THIS._fixStr(THIS.Receptor.DomicilioFiscal.municipio),CFD_OPCIONAL)
+       .addProp("estado",THIS._fixStr(THIS.Receptor.DomicilioFiscal.estado),CFD_OPCIONAL)
+       .addProp("pais",THIS._fixStr(THIS.Receptor.DomicilioFiscal.pais))
+       .addProp("codigoPostal",THIS._fixStr(THIS.Receptor.DomicilioFiscal.codigoPostal),CFD_OPCIONAL)
+      ENDWITH
+    ENDIF 
    ENDWITH
    
    

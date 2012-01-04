@@ -1,5 +1,7 @@
 * --
-* -- Este ejemplo genera un CFD version 2.2 utilizando la clase CFD
+* -- Este ejemplo genera un CFD version 2.2 utilizando la clase CFD. A diferencia
+*    del ejemplo TEST, en este ejemplo la version del CFD se especifica al momento
+*    de crear el comprobante y no mediante la propiedad XMLVersion. 
 * --
 *
 CLOSE ALL
@@ -28,7 +30,6 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .XMLversion = CFDVersions.CFD_22
  .incluirBOM = .F.
 ENDWITH
 
@@ -45,7 +46,7 @@ ENDIF
     
 ?"- Generando CFD..."    
 LOCAL oCFD, o
-oCFD = CREATEOBJECT("CFDComprobante")
+oCFD = CREATEOBJECT("CFDComprobante", CFDVersions.CFD_22)
 WITH oCFD
  .Serie = "A"
  .Folio = 25815
@@ -74,16 +75,18 @@ WITH oCFD
  .metodoDePago = "Cheque"
  
  .Emisor.RFC = "GOYA780416GM0"
- .Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ" 
- .Emisor.domicilioFiscal.Calle = "Benito Juarez Ote"
- .Emisor.domicilioFiscal.noExterior = "106"
- .Emisor.domicilioFiscal.noInterior = "1" 
- .Emisor.domicilioFiscal.Colonia = "Centro"
- .Emisor.domicilioFiscal.Municipio = "Cd. Guadalupe"
- .Emisor.domicilioFiscal.Localidad = "México" 
- .Emisor.domicilioFiscal.Estado = "Nuevo León"
- .Emisor.domicilioFiscal.Pais = "Mexico"
- .Emisor.domicilioFiscal.codigoPostal = "67100"
+ *.Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ"   && Opcional en 2.2
+ 
+ * -- Opcional en 2.2
+ *.Emisor.domicilioFiscal.Calle = "Benito Juarez Ote"
+ *.Emisor.domicilioFiscal.noExterior = "106"
+ *.Emisor.domicilioFiscal.noInterior = "1" 
+ *.Emisor.domicilioFiscal.Colonia = "Centro"
+ *.Emisor.domicilioFiscal.Municipio = "Cd. Guadalupe"
+ *.Emisor.domicilioFiscal.Localidad = "México" 
+ *.Emisor.domicilioFiscal.Estado = "Nuevo León"
+ *.Emisor.domicilioFiscal.Pais = "Mexico"
+ *.Emisor.domicilioFiscal.codigoPostal = "67100"
  
  .Emisor.expedidoEn.Calle = "Benito Juarez Ote"
  .Emisor.expedidoEn.noExterior = "106"
@@ -95,6 +98,7 @@ WITH oCFD
  .Emisor.expedidoEn.Pais = "México"	
  .Emisor.expedidoEn.codigoPostal = "67100"
 
+ * -- Nuevo y obligatorio en 2.2
  .Emisor.RegimenFiscal.Regimen = "Actividad Empresarial"
  
  .Receptor.RFC = "EAM001231D51"
