@@ -1046,7 +1046,7 @@ DEFINE CLASS CFDComprobante AS Custom
     ENDIF 
     
     IF NOT EMPTY(THIS.Receptor.DomicilioFiscal.pais) && ARC Ene 03, 2012: Ya que Pais es el unico atributo requerido
-      .addNode("Domicilio")
+      .addNode("Domicilio")  && Es opcional en 3.0, 2.2 y 3.2
       WITH ._Domicilio
        .addProp("calle",THIS._fixStr(THIS.Receptor.DomicilioFiscal.Calle),CFD_OPCIONAL)
        .addProp("noExterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noExterior),CFD_OPCIONAL)

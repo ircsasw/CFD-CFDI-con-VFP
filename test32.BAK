@@ -130,7 +130,7 @@ WITH oCFD
  o.informacionAduanera.aduana = "240"
  
 ENDWITH
-
+??"...Version " + CFDVersions.ToLongString(CFDVersions.fromString(oCFD.Version))
 
 *-- Se carga la informacion del certificado 
 *

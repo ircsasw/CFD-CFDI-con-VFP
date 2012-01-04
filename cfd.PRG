@@ -71,6 +71,10 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** ARC  Ene 03, 2012    - nombre de emisor es opcional en 2.2 y 3.2
+**                      - nombre de receptor es opcional en todas las versiones
+**                      - domicilio de receptor es opcional en 3.0, 2.2 y 3.2
+**
 ** VES	Dic 30, 2011	- Nueva enumeracion CFDVersions (CFDVersionsEnum)
 **						- Se cambio el objeto CFDConf de buffer a instancia de clase para poder implementar
 **						  un validador para la propiedad XMLVersion.

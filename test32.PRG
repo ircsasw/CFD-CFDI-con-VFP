@@ -50,8 +50,6 @@ WITH oCFD
  .Serie = "A"
  .Folio = 25815
  .Fecha = DATETIME()
- .noAprobacion = 1
- .anoAprobacion = 2009
  .formaDePago = "Una sola exhibición"
  .condicionesDePago = "A 30 días"
  .subTotal = 4371.00
@@ -74,7 +72,9 @@ WITH oCFD
  .metodoDePago = "Cheque"
  
  .Emisor.RFC = "GOYA780416GM0"
- .Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ" 
+ .Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ" && Opcional en 3.2
+ 
+ * -- DomicilioFiscal Opcional en 3.2
  .Emisor.domicilioFiscal.Calle = "Benito Juarez Ote"
  .Emisor.domicilioFiscal.noExterior = "106"
  .Emisor.domicilioFiscal.noInterior = "1" 
@@ -82,11 +82,10 @@ WITH oCFD
  .Emisor.domicilioFiscal.Municipio = "Cd. Guadalupe"
  .Emisor.domicilioFiscal.Localidad = "México" 
  .Emisor.domicilioFiscal.Estado = "Nuevo León"
- .Emisor.domicilioFiscal.Pais = "Mexico"
+ .Emisor.domicilioFiscal.Pais = "Mexico"   && Único Requerido si DomicilioFiscal esta presente
  .Emisor.domicilioFiscal.codigoPostal = "67100"
- 
- .Emisor.RegimenFiscal.Regimen = "Actividad Empresarial"
 
+ * -- ExpedidoEn Opcional
  .Emisor.expedidoEn.Calle = "Benito Juarez Ote"
  .Emisor.expedidoEn.noExterior = "106"
  .Emisor.expedidoEn.noInterior = "1" 
@@ -97,8 +96,13 @@ WITH oCFD
  .Emisor.expedidoEn.Pais = "México"	
  .Emisor.expedidoEn.codigoPostal = "67100"
  
+ * -- Nuevo y obligatorio en 3.2 (puede ser uno o muchos)
+ .Emisor.RegimenFiscal.Regimen = "Actividad Empresarial" 
+ 
  .Receptor.RFC = "EAM001231D51"
- .Receptor.Nombre = "ENVASADORAS DE AGUAS EN MÉXICO, S. DE R. L. DE C.V." 
+ .Receptor.Nombre = "ENVASADORAS DE AGUAS EN MÉXICO, S. DE R. L. DE C.V."   && Opcional en 3.2
+ 
+ * -- Domicilio de Receptor opcional en 3.2
  .Receptor.domicilioFiscal.Calle = "AVE. LA SILLA"
  .Receptor.domicilioFiscal.noExterior = "7707"
  .Receptor.domicilioFiscal.noInterior = "1" 
@@ -106,7 +110,7 @@ WITH oCFD
  .Receptor.domicilioFiscal.Localidad = "GUADALUPE" 
  .Receptor.domicilioFiscal.Municipio = "GUADALUPE"
  .Receptor.domicilioFiscal.Estado = "NUEVO LEÓN"
- .Receptor.domicilioFiscal.Pais = "México"
+ .Receptor.domicilioFiscal.Pais = "México"    && Único Requerido si Domicilio esta presente
  .Receptor.domicilioFiscal.codigoPostal = "67190"
  
  .Impuestos.Traslados.Add("IVA",16.00,640.00)
