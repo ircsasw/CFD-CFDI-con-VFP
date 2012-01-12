@@ -97,7 +97,9 @@ WITH oCFD
  .Emisor.expedidoEn.codigoPostal = "67100"
  
  * -- Nuevo y obligatorio en 3.2 (puede ser uno o muchos)
- .Emisor.RegimenFiscal.Regimen = "Actividad Empresarial" 
+ .Emisor.regimenFiscal.Add("Actividad Empresarial")
+ .Emisor.regimenFiscal.Add("Otro Regimen (Opcional)")
+ *.Emisor.RegimenFiscal.Regimen = "Actividad Empresarial" 
  
  .Receptor.RFC = "EAM001231D51"
  .Receptor.Nombre = "ENVASADORAS DE AGUAS EN MÉXICO, S. DE R. L. DE C.V."   && Opcional en 3.2
@@ -121,6 +123,7 @@ WITH oCFD
  o.informacionAduanera.numero = "12345678901" 
  o.informacionAduanera.fecha = CTOD("15-12-2009")
  o.informacionAduanera.aduana = "240"
+ o.Complemento = CREATEOBJECT("CFDComplementoConcepto")
 
  o = .Conceptos.Add(1.000, "CORTADORA CIRCULAR DE 1/2", 1696.00, 1696.00)    
  o.noIdentificacion = "CCIRC-98"
@@ -207,7 +210,7 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-CFDPrint("test32.xml",,.T.,"TEST32.PDF")
+*CFDPrint("test32.xml",,.T.,"TEST32.PDF")
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
@@ -233,3 +236,9 @@ CFDPrint("test32.xml",,.T.,"TEST32.PDF")
 RETURN
 
 
+
+DEFINE CLASS CFDComplementoConcepto AS ICFDAddenda
+ PROCEDURE ToString()
+  RETURN [<iedu:instEducativas xmlns:iedu="http://www.sat.gob.mx/iedu" version="1.0" nombreAlumno="Juanito Pérez Niño" CURP="JUAN01010101GTOHMD0" nivelEducativo="Preescolar" autRVOE="1234" rfcPago="ABC010101AAA"/>]
+ ENDPROC
+ENDDEFINE

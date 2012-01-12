@@ -68,7 +68,7 @@ WITH oCFD
  .Emisor.domicilioFiscal.Estado = "Nuevo León"
  .Emisor.domicilioFiscal.Pais = "Mexico"
  .Emisor.domicilioFiscal.codigoPostal = "67100"
-
+ 
  .Emisor.expedidoEn.Calle = "Benito Juarez Ote"
  .Emisor.expedidoEn.noExterior = "106"
  .Emisor.expedidoEn.noInterior = "1" 
@@ -186,7 +186,7 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-CFDPrint("test.xml",,.T.,"TEST.PDF")
+*CFDPrint("test.xml",,.T.,"TEST.PDF")
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados

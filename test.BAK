@@ -68,6 +68,9 @@ WITH oCFD
  .Emisor.domicilioFiscal.Estado = "Nuevo León"
  .Emisor.domicilioFiscal.Pais = "Mexico"
  .Emisor.domicilioFiscal.codigoPostal = "67100"
+ 
+ .Emisor.regimenFiscal.Add("Regimen General De Ley")
+ .Emisor.regimenFiscal.Add("Otro Regimen (Opcional)")
 
  .Emisor.expedidoEn.Calle = "Benito Juarez Ote"
  .Emisor.expedidoEn.noExterior = "106"
@@ -112,7 +115,7 @@ WITH oCFD
  o.informacionAduanera.aduana = "240"
  
 ENDWITH
-??"...Version " + CFDVersions.ToLongString(CFDVersion.fromString(oCFD.Version))
+??"...Version " + CFDVersions.ToLongString(CFDVersions.fromString(oCFD.Version))
 
 
 *-- Se carga la informacion del certificado 
@@ -186,7 +189,7 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-CFDPrint("test.xml",,.T.,"TEST.PDF")
+*CFDPrint("test.xml",,.T.,"TEST.PDF")
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados

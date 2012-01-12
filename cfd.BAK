@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.5
+** Version: 3.6
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -71,8 +71,14 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
-** VES  Ene 12, 2012	- 
-**
+** VES  Ene 12, 2012	- Nueva version 3.6
+**                      - Modificacion a la funcion CFDExtraerCadenaOriginal a fin de usar la version 
+**                        indicada en el comprobante y NO la indicada en CFDConf.XMLVersion a fin de
+**                        determinar el XSLT a utilizar para generar la cadena original.
+**                      - Nueva propiedad RegimenFiscal en CFDPersona
+**                      - Nuevas clases CFDRegimenFiscalCollection y CFDRegimenFiscal
+**                      - Nueva propiedad Complemento en clase CFDConcepto
+**						- Cambios en metodo CrearXML() para implementar las nuevas propiedades RegimenFiscal y Comeplemento (Concepto)
 **
 ** ARC  Ene 03, 2012    - nombre de emisor es opcional en 2.2 y 3.2
 **                      - nombre de receptor es opcional en todas las versiones
@@ -242,8 +248,8 @@
 *!*	+subTotal 
 *!*	+Total 
 *!*	+tipoDeComprobante 
-*!*	+Emisor {CFDEmisor}
-*!*	+Receptor {CFDReceptor}
+*!*	+Emisor {CFDPersona}
+*!*	+Receptor {CFDPersona}
 *!*	+Conceptos {CFDConceptos}
 *!*	-Serie
 *!*	-Certificado 
@@ -274,9 +280,11 @@
 *!*	+Nombre
 *!*	+domicilioFiscal {CFDDireccion}  [3]
 *!*	-expedidoEn {CFDDireccion} [4]
+*!* -RegimenFiscal {CFDRegimenFiscalCollection} [5]
 
 *!*	[3] En el caso del receptor, este atributo se utiliza para el atributo "Domicilio" en el XML
 *!*	[4] En el caso del receptor, este atrbuto no es tomado en cuenta
+*!* [5] En el caso del receptor, este atributo no es tomado en cuenta
 
 
 *!*	CFDDireccion {Custom}
@@ -307,6 +315,7 @@
 *!*	-noIdentificacion
 *!*	-informacionAduanera {CFDInformacionAduanera}
 *!*	-cuentaPredial {CFDCuentaPredial}
+*!* -Complemento {ICFDAddenda}
 
 
 *!*	CFDInformacionAduanera {Custom}
@@ -319,6 +328,16 @@
 *!*	CFDCuentaPredial {Custom}
 *!*	=========================
 *!*	+Numero
+
+
+*!*	CFDRegimenFiscalCollection {CFDCollection}
+*!*	==========================================
+*!*	@Add(regimenFiscal) = {CFDRegimenFiscal}
+
+
+*!*	CFDRegimenFiscal (Custom)
+*!*	============================
+*!*	+Regimen
 
 
 *!*	CFDImpuestos {Custom}
@@ -1035,11 +1054,13 @@ DEFINE CLASS CFDComprobante AS Custom
      ENDWITH
     ENDIF
     
-    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)  && TODO: Regimen Fiscal puede ser multiples nodos
-      .addNode("RegimenFiscal")
-      WITH ._RegimenFiscal
-        .addProp("Regimen",THIS._fixStr(THIS.Emisor.RegimenFiscal.Regimen))
-      ENDWITH 
+    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)
+      LOCAL nRegimen,oRegimen,oNodoRegimen   && VES Ene 12, 2012
+      FOR nRegimen = 1 TO THIS.Emisor.RegimenFiscal.Count
+       oRegimen = THIS.Emisor.RegimenFiscal.Items[nRegimen]
+       oNodoRegimen = .addNode("RegimenFiscal")
+       oNodoRegimen.addProp("Regimen",THIS._fixStr(oRegimen.Regimen))
+      ENDFOR
     ENDIF 
    ENDWITH
    
@@ -1116,6 +1137,23 @@ DEFINE CLASS CFDComprobante AS Custom
         .addProp("numero",THIS._fixStr(oItem.CuentaPredial.numero))
        ENDWITH
       ENDIF
+     
+     
+      *-- VES Ene 12, 2012: Si el concepto contiene un complemento, se inserta como si
+      *   fuera una addenda en el concepto
+      IF !ISNULL(oItem.Complemento) AND LOWER(oItem.Complemento.ParentClass) == "icfdaddenda"
+       oNodo = .addNode(oItem.Complemento.nodeName)
+       oNodo.Data = oItem.Complemento.ToString() 
+       IF !EMPTY(oItem.Complemento.NSTag)
+        oParser.XML._Comprobante.addProp("xmlns:" + oItem.Complemento.NSTag, oItem.Complemento.NSUrl)
+       ENDIF
+       IF !EMPTY(oItem.Complemento.schemaLocation)
+        WITH oParser.XML._Comprobante.Props["xsi:schemaLocation"]
+         .Value = .Value + SPACE(1) + oItem.Complemento.schemaLocation
+        ENDWITH
+       ENDIF
+      ENDIF 
+     
       
      ENDWITH
     ENDFOR
@@ -1278,6 +1316,58 @@ DEFINE CLASS CFDComprobante AS Custom
 ENDDEFINE
 
 
+*-- CFDRegimenFiscal
+*   Datos de un regimen fiscal
+*
+DEFINE CLASS CFDRegimenFiscal AS Custom
+ *
+ Regimen = ""
+ *
+ENDDEFINE
+
+
+*-- CFDRegimenFiscalCollection (Clase)
+*   Lista de regimenes fiscales de una persona
+*
+DEFINE CLASS CFDRegimenFiscalCollection AS CFDCollection
+ *
+ Regimen = ""   && Regimen por omision
+ 
+ *-- Regimen (Setter)
+ PROCEDURE Regimen_Assign(vNewVal)
+  IF THIS.Count = 0
+   THIS.Add(m.vNewVal)
+  ENDIF
+ ENDPROC
+ 
+ *-- Regimen (Getter)
+ PROCEDURE Regimen_Access
+  IF THIS.Count > 0
+   RETURN THIS.Items[1].Regimen
+  ELSE
+   RETURN ""
+  ENDIF
+ ENDPROC
+ 
+ 
+ *-- Add (Metodo)
+ *   Incluye un nuevo elemento en la coleccion
+ PROCEDURE Add(pcRegimen)
+  *
+  LOCAL oItem
+  oItem = CREATEOBJECT("CFDRegimenFiscal")
+  WITH oItem
+   .Regimen = pcRegimen
+  ENDWITH
+  
+  RETURN DODEFAULT(oItem)
+  *
+ ENDPROC
+ 
+ *
+ENDDEFINE
+
+
 
 *-- CFDPersona (Clase)
 *   Representa los datos de una persona juridica especifica
@@ -1298,7 +1388,7 @@ DEFINE CLASS CFDPersona AS Custom
  PROCEDURE Init
   THIS.domicilioFiscal = CREATEOBJECT("CFDDireccion")
   THIS.expedidoEn = CREATEOBJECT("CFDDireccion")  
-  THIS.RegimenFiscal = CREATEOBJECT("CFDRegimenFiscal")
+  THIS.RegimenFiscal = CREATEOBJECT("CFDRegimenFiscalCollection")
  ENDPROC
  *
 ENDDEFINE
@@ -1328,17 +1418,6 @@ DEFINE CLASS CFDDireccion AS Custom
 ENDDEFINE
 
 
-
-*-- CFDRegimenFiscal (Clase)
-*   Representa un regimen fiscal dentro de un
-*   comprobante digital
-*
-DEFINE CLASS CFDRegimenFiscal AS Custom
- *
- *-- Atributos requeridos
- Regimen = ""
- *
-ENDDEFINE
 
 
 *-- CFDConceptos (Clase)
@@ -1385,11 +1464,13 @@ DEFINE CLASS CFDConcepto AS Custom
  noIdentificacion = ""
  informacionAduanera = NULL
  cuentaPredial = NULL
+ Complemento = NULL   && VES Ene 12, 2012
 
  *-- Constructor de la clase
  PROCEDURE Init
   THIS.informacionAduanera = CREATEOBJECT("CFDInformacionAduanera")
   THIS.cuentaPredial = CREATEOBJECT("CFDCuentaPredial")
+  THIS.Complemento = NULL  && VES Ene 12, 2012
  ENDPROC 
  *
 ENDDEFINE
@@ -4046,7 +4127,7 @@ FUNCTION CFDExtraerCadenaOriginal(pcXML, pcOpenSSL)
  *   pasar que la version del XML difiera de la version indicada en CFDConf.XMLVersion
  LOCAL cBuff,nXMLVersion
  cBuff=FILETOSTR(pcXML)
- cBuff=SUBS(cBuff,AT("<Comprobante",cBuff))
+ cBuff=SUBS(cBuff,AT("Comprobante ",cBuff))
  cBuff=LEFT(cBuff,AT(">",cBuff))
  cBuff=SUBS(cBuff,ATC("version",cBuff))
  cBuff=LEFT(cBuff,AT(" ",cBuff) - 1)
