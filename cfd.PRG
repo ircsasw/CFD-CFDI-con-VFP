@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.5
+** Version: 3.6
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -70,6 +70,11 @@
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
+**
+** VES  Ene 12, 2012	- Modificacion a la funcion CFDExtraerCadenaOriginal a fin de usar la version 
+**                        indicada en el comprobante y NO la indicada en CFDConf.XMLVersion a fin de
+**                        determinar el XSLT a utilizar para generar la cadena original.
+**                      - Se subio la version de la libreria a 3.6
 **
 ** ARC  Ene 03, 2012    - nombre de emisor es opcional en 2.2 y 3.2
 **                      - nombre de receptor es opcional en todas las versiones
@@ -4037,16 +4042,31 @@ FUNCTION CFDExtraerCadenaOriginal(pcXML, pcOpenSSL)
  cCADFile = FORCEEXT(cBATFile,"CAD")
  cXSLFile = FORCEEXT(cBATFile,"XSLT")
  cXSLTProc = GetShortName(pcOpenSSL + "XSLTPROC.EXE")
+ 
+ 
+ *-- VES Ene 12, 2011: Se obtiene la version del XML. Esto se hace porque puede
+ *   pasar que la version del XML difiera de la version indicada en CFDConf.XMLVersion
+ LOCAL cBuff,nXMLVersion
+ cBuff=FILETOSTR(pcXML)
+ cBuff=SUBS(cBuff,AT("<Comprobante",cBuff))
+ cBuff=LEFT(cBuff,AT(">",cBuff))
+ cBuff=SUBS(cBuff,ATC("version",cBuff))
+ cBuff=LEFT(cBuff,AT(" ",cBuff) - 1)
+ cBuff=CHRT(LOWER(cBuff),[version="],"")
+ nXMLVersion = CFDVersions.fromString(cBuff) 
+
+ 
   
  *-- ARC Dic 27, 2011: Define el XSLT local a utilizar
+ *   VES Ene 12, 2012: Se cambio CFDConf.XMLVersion por nXMLVersion
  DO CASE 
- 	CASE CFDConf.XMLversion = CFDVErsions.CFD_20
+ 	CASE nXMLversion = CFDVErsions.CFD_20
  		cXsltFile = "cadenaoriginal_2_0_local.xslt"
- 	CASE CFDConf.XMLversion = CFDVersions.CFDi_30
+ 	CASE nXMLversion = CFDVersions.CFDi_30
  		cXsltFile = "cadenaoriginal_3_0_local.xslt"
- 	CASE CFDConf.XMLversion = CFDVersions.CFD_22
+ 	CASE nXMLversion = CFDVersions.CFD_22
  		cXsltFile = "cadenaoriginal_2_2_local.xslt"
- 	CASE CFDConf.XMLversion = CFDVersions.CFDi_32
+ 	CASE nXMLversion = CFDVersions.CFDi_32
  		cXsltFile = "cadenaoriginal_3_2_local.xslt"
  ENDCASE 
  cBuff = FILETOSTR(pcOpenSSL + cXsltFile)
