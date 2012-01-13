@@ -1,5 +1,6 @@
 * --
-* -- Este ejemplo genera un CFD version 3.2 utilizando la clase CFD
+* -- Este ejemplo genera un CFD version 3.2 utilizando la clase CFD y
+* -- mostrando el uso del nodo Complemento de un concepto.
 * --
 *
 CLOSE ALL
@@ -11,6 +12,7 @@ SET SAFETY OFF
 SET DATE ITALIAN   
 
 SET PROCEDURE TO cfd
+SET PROCEDURE TO CFDComplementoIEDU ADDITIVE  && Implementacion del complemento IEDU
 
 CFDInit()
 
@@ -97,9 +99,7 @@ WITH oCFD
  .Emisor.expedidoEn.codigoPostal = "67100"
  
  * -- Nuevo y obligatorio en 3.2 (puede ser uno o muchos)
- .Emisor.regimenFiscal.Add("Actividad Empresarial")
- .Emisor.regimenFiscal.Add("Otro Regimen (Opcional)")
- *.Emisor.RegimenFiscal.Regimen = "Actividad Empresarial" 
+ .Emisor.RegimenFiscal.Regimen = "Actividad Empresarial" 
  
  .Receptor.RFC = "EAM001231D51"
  .Receptor.Nombre = "ENVASADORAS DE AGUAS EN MÉXICO, S. DE R. L. DE C.V."   && Opcional en 3.2
@@ -123,6 +123,19 @@ WITH oCFD
  o.informacionAduanera.numero = "12345678901" 
  o.informacionAduanera.fecha = CTOD("15-12-2009")
  o.informacionAduanera.aduana = "240"
+ 
+ *-- El complemento se implementa asignando una instancia de una clase derivada
+ *   de ICFDAddenda. En este caso, la clase es CFDComplementoIEDU (ver el archivo
+ *   CFDCOMPLEMENTOIEDU.PRG)
+ o.Complemento = CREATEOBJECT("CFDComplementoIEDU")
+ WITH o.Complemento
+  .nombreAlumno = "Carlos Uriel Marieles García"
+  .CURP = "MAGCTRRS06870912HG" 
+  .nivelEducativo = "Profesional técnico"
+  .autRVOE="4587-DHM"
+  .rfcPago = "ASI100666446"
+ ENDWITH
+ 
 
  o = .Conceptos.Add(1.000, "CORTADORA CIRCULAR DE 1/2", 1696.00, 1696.00)    
  o.noIdentificacion = "CCIRC-98"
@@ -191,44 +204,19 @@ ENDIF
 *-- Se crea el CFD
 *
 ?"- Creando CFD"
-oCFD.CrearXML("test32.xml")
+oCFD.CrearXML("testcomplementoconcepto.xml")
 
 
 
 *-- Se vaaida el CFD
 *
 ?"- Validando CFD"
-IF NOT CFDValidarXML("test32.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
+IF NOT CFDValidarXML("testcomplementoconcepto.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
  ?"ERROR: " + CFDConf.ultimoError
  RETURN
 ELSE 
   ??" OK"
 ENDIF
-
-
-*-- Se graba el CFD como PDF (se requiere PDFCreator)
-*
-?"- Generando PDF"
-*CFDPrint("test32.xml",,.T.,"TEST32.PDF")
-
-
-*!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
-*!*	*   en CFDCOnf al inicio de este programa, y luego quite los comentarios
-*!*	*   para poder enviar por correo
-*!*	*
-*!*	*   El envio por correo se hace usando CDO, asi que en teoria no es necesario
-*!*	*   instalar ningun software adicional para que funcione
-*!*	*
-*!*	*?"- Enviando por correo"
-*!*	*CFDEnviarPorCorreo("sucuenta@gmail.com","Asunto","Texto","TEST.PDF")
-
-
-*!*	*-- Se imprime el CFD
-*!*	*
-*!*	?"- Imprimendo CFD"
-*!*	CFDPrint("test32.xml",.T.)
-
-
 
 
 
