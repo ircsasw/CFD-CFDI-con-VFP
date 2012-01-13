@@ -6,7 +6,7 @@ DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
  NSTag = "iedu"
  NSUrl = "http://www.sat.gob.mx/iedu"
  
- version = ""
+ version = "1.0"
  nombreAlumno = ""
  CURP = ""
  nivelEducativo = ""
@@ -31,6 +31,9 @@ DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
   
   *
  ENDPROC
+ 
+ PROCEDURE Version_Assign(vNewVal)
+ ENDPROC 
  *
 ENDDEFINE
 

@@ -126,7 +126,6 @@ WITH oCFD
  *   CFDCOMPLEMENTOIEDU.PRG)
  o.Complemento = CREATEOBJECT("CFDComplementoIEDU")
  WITH o.Complemento
-  .version = "1.0"
   .nombreAlumno = "Carlos Uriel Marieles García"
   .CURP = "MAGC870912HGTRRS06" 
   .nivelEducativo = "Profesional técnico"
