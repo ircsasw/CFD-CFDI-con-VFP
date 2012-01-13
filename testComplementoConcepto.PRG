@@ -53,11 +53,11 @@ WITH oCFD
  .Folio = 25815
  .Fecha = DATETIME()
  .formaDePago = "Una sola exhibición"
- .condicionesDePago = "A 30 días"
- .subTotal = 4371.00
+ .condicionesDePago = "Contado"
+ .subTotal = 4000.00
  .Total = 4640.00
- .Descuento = 371.00
- .motivoDescuento = "Anticipo"
+ *.Descuento = 0.00
+ *.motivoDescuento = "Anticipo"
  .tipoDeComprobante = "ingreso"
  
  *-- Atributos CFD 3.2 opcionales 
@@ -117,36 +117,23 @@ WITH oCFD
  
  .Impuestos.Traslados.Add("IVA",16.00,640.00)
  
- o = .Conceptos.Add(1.000, "ARCO PARA SEGUETA DE ALTA TENS", 176.00, 176.00)    
- o.noIdentificacion = "ABC-12345"
+ o = .Conceptos.Add(1.000, "PAGO DE COLEGIATURA ENERO 2012", 4000.00, 4000.00)    
+ o.noIdentificacion = "COLENE12"
  o.Unidad = "PIEZA"
- o.informacionAduanera.numero = "12345678901" 
- o.informacionAduanera.fecha = CTOD("15-12-2009")
- o.informacionAduanera.aduana = "240"
- 
+  
  *-- El complemento se implementa asignando una instancia de una clase derivada
  *   de ICFDAddenda. En este caso, la clase es CFDComplementoIEDU (ver el archivo
  *   CFDCOMPLEMENTOIEDU.PRG)
  o.Complemento = CREATEOBJECT("CFDComplementoIEDU")
  WITH o.Complemento
+  .version = "1.0"
   .nombreAlumno = "Carlos Uriel Marieles García"
-  .CURP = "MAGCTRRS06870912HG" 
+  .CURP = "MAGC870912HGTRRS06" 
   .nivelEducativo = "Profesional técnico"
   .autRVOE="4587-DHM"
-  .rfcPago = "ASI100666446"
+  .rfcPago = "ASI100623H46"
  ENDWITH
  
-
- o = .Conceptos.Add(1.000, "CORTADORA CIRCULAR DE 1/2", 1696.00, 1696.00)    
- o.noIdentificacion = "CCIRC-98"
- o.Unidad = "PIEZA"
-    
- o = .Conceptos.Add(1.000, "MESA DE TRABAJO USO RUDO MADERA", 2499.00, 2499.00)    
- o.noIdentificacion = "MES0002" 
- o.Unidad = "PIEZA"
- o.informacionAduanera.numero = "12345678901" 
- o.informacionAduanera.fecha = CTOD("15-12-2009")
- o.informacionAduanera.aduana = "240"
  
 ENDWITH
 ??"...Version " + CFDVersions.ToLongString(CFDVersions.fromString(oCFD.Version))

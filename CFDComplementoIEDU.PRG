@@ -6,6 +6,7 @@ DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
  NSTag = "iedu"
  NSUrl = "http://www.sat.gob.mx/iedu"
  
+ version = ""
  nombreAlumno = ""
  CURP = ""
  nivelEducativo = ""
@@ -19,6 +20,7 @@ DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
   oParser.New()
   oRoot = oParser.XML.addNode("iedu:instEducativas")
   oRoot.addProp("xsi:schemaLocation","http://www.sat.gob.mx/iedu http://www.sat.gob.mx/sitio_internet/cfd/iedu/iedu.xsd")
+  oRoot.addProp("version", THIS.version)
   oRoot.addProp("nombreAlumno", THIS.nombreAlumno)
   oRoot.addProp("CURP", THIS.CURP)
   oRoot.addProp("nivelEducativo",THIS.nivelEducativo)
