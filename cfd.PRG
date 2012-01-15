@@ -71,6 +71,8 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** ARC  Ene 14, 2012    - Se repara error en CFDVersionsEnum que no permitia generar CFDI 3.0
+** 
 ** VES  Ene 12, 2012	- Nueva version 3.6
 **                      - Modificacion a la funcion CFDExtraerCadenaOriginal a fin de usar la version 
 **                        indicada en el comprobante y NO la indicada en CFDConf.XMLVersion a fin de
@@ -545,7 +547,7 @@ DEFINE CLASS CFDVersionsEnum AS Custom
  *
  CFD_20 = 2
  CFD_22 = 22
- CFDi_30 = 30
+ CFDi_30 = 3
  CFDi_32 = 32
  validVersionList = "[2][22][3][32]"
 

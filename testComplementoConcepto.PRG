@@ -30,7 +30,8 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .XMLversion = CFDVersions.CFDi_32
+ *.XMLversion = CFDVersions.CFDi_32
+ .XMLversion = CFDVersions.CFDi_30
  .incluirBOM = .F.
 ENDWITH
 
@@ -141,14 +142,14 @@ ENDWITH
 *
 LOCAL cArchivoKey, cArchivoCer
 * Para pruebas con certificados del SAT
-cArchivoKey = "aaa010101aaa_CSD_01.key"
-cArchivoCer = "aaa010101aaa_CSD_01.cer"
-cPasswrdKey = "a0123456789"
+*cArchivoKey = "aaa010101aaa_CSD_01.key"
+*cArchivoCer = "aaa010101aaa_CSD_01.cer"
+*cPasswrdKey = "a0123456789"
 
 * Certificado de pruebas del PAC
-*cArchivoKey = "goya780416gm0_1011181055s.key"
-*cArchivoCer = "goya780416gm0.cer"
-*cPasswrdKey = "12345678a"
+cArchivoKey = "goya780416gm0_1011181055s.key"
+cArchivoCer = "goya780416gm0.cer"
+cPasswrdKey = "12345678a"
 
 
 ?"- Validando archivos key y cer..."

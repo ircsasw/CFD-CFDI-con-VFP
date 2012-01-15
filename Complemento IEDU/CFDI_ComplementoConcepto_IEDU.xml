@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:iedu="http://www.sat.gob.mx/iedu" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd " version="3.0" serie="AB" folio="12" fecha="2011-11-09T18:43:29" sello="fWlT7vwIo7Bq9PIcVmNCh7gYice634w8z1gGytsze2qeMY87lKmeA3FccA15Bfm3ZwwFbNE9TQuWNCFLWH4xxc9+YObblgDgROhJBcgI86GxEJNYMNb/N24HMFG543KGwjXVxqmjlvXtQfLaS2fNoK1tqm3r++fGSFREFH8SqnM=" formaDePago="EFECTIVO" noCertificado="20001000000100001705" certificado="MIIFDzCCA/egAwIBAgIUMjAwMDEwMDAwMDAxMDAwMDE3MDUwDQYJKoZIhvcNAQEFBQAwggFvMRgwFgYDVQQDDA9BLkMuIGRlIHBydWViYXMxLzAtBgNVBAoMJlNlcnZpY2lvIGRlIEFkbWluaXN0cmFjacOzbiBUcmlidXRhcmlhMTgwNgYDVQQLDC9BZG1pbmlzdHJhY2nDs24gZGUgU2VndXJpZGFkIGRlIGxhIEluZm9ybWFjacOzbjEpMCcGCSqGSIb3DQEJARYaYXNpc25ldEBwcnVlYmFzLnNhdC5nb2IubXgxJjAkBgNVBAkMHUF2LiBIaWRhbGdvIDc3LCBDb2wuIEd1ZXJyZXJvMQ4wDAYDVQQRDAUwNjMwMDELMAkGA1UEBhMCTVgxGTAXBgNVBAgMEERpc3RyaXRvIEZlZGVyYWwxEjAQBgNVBAcMCUNveW9hY8OhbjEVMBMGA1UELRMMU0FUOTcwNzAxTk4zMTIwMAYJKoZIhvcNAQkCDCNSZXNwb25zYWJsZTogSMOpY3RvciBPcm5lbGFzIEFyY2lnYTAeFw0xMDExMTkxOTQyMDRaFw0xMjExMTgxOTQyMDRaMIGoMR0wGwYDVQQDExRHRVJBUkRPIEZSQUdPU08gTFVOQTEdMBsGA1UEKRMUR0VSQVJETyBGUkFHT1NPIExVTkExHTAbBgNVBAoTFEdFUkFSRE8gRlJBR09TTyBMVU5BMRYwFAYDVQQtEw1GQUxHMzkwMjAyRUE0MRswGQYDVQQFExJGQUxHMzkwMjAyTURGTlNSMDgxFDASBgNVBAsTC1N1Y3Vyc2FsQVZMMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCjluKNRikZi9pvCRKB0eZ0TjZBCe77RM+rHhvmhKfMTEiNIT517b0GETdYNXgaYSSnNcp5PXk7LftnIv+zf5iHRKJ+pR+ogQhaU3iE5RO7BtcQHIwINLkL1JRJC+jEcbkMUUbeXyZCiD1HCEf2a8L5yhY4ddgWqxE5Bk9w25EABQIDAQABo4HqMIHnMAwGA1UdEwEB/wQCMAAwCwYDVR0PBAQDAgbAMB0GA1UdDgQWBBQQYCf+5Zp25kTvismyc2EGN6zDYjAuBgNVHR8EJzAlMCOgIaAfhh1odHRwOi8vcGtpLnNhdC5nb2IubXgvc2F0LmNybDAzBggrBgEFBQcBAQQnMCUwIwYIKwYBBQUHMAGGF2h0dHA6Ly9vY3NwLnNhdC5nb2IubXgvMB8GA1UdIwQYMBaAFOtZfQQimlONnnEaoFiWKfU54KDFMBAGA1UdIAQJMAcwBQYDKgMEMBMGA1UdJQQMMAoGCCsGAQUFBwMCMA0GCSqGSIb3DQEBBQUAA4IBAQBjBGNr/3DlqQGCTUMir5Q9r3rXVRtQ9WMX4EyrX7ms9h3rmvWZrV2sYFNq0BbXpgAKIDaQEbqZ/tl1/adI02ecuSoEHjJYAEvKlhZ9MTVYnMm5Gb8b4PSYDXpwMdntAlSWIMPmafMvrGjRKjM4U8SQYJTW/Q6L0HC7sli2hHtRJ/t9dC/QRaB2g39nC13cyBs4V7YpJ1NLHeHHzirMzMh4isfuHJWlYRvDf78e//Kb1Fw2Ry74MD7kuK2PZyE/GnXqjGSxHZGxMh2ebTiR1txjj4o7g2fZ1rk0plwKbyFXKSdylIUu5J8+0VSJJLbGF12WR0/pzVCp3j3BQKwNlu50" condicionesDePago="parcialidades" subTotal="4000.00" total="4640.00" metodoDePago="contado" tipoDeComprobante="ingreso">
+  <cfdi:Emisor rfc="FALG390202EA4" nombre="Fausto Lopez">
+    <cfdi:DomicilioFiscal calle="Calle de prueba" noExterior="123" noInterior="4" colonia="Prueba Colonia" localidad="Zapopan" municipio="Coyoacan" estado="DF" pais="México" codigoPostal="04890" />
+  </cfdi:Emisor>
+  <cfdi:Receptor rfc="APR0412108C5" nombre="Activivienda Promocion S.A. de C.V.">
+    <cfdi:Domicilio calle="Clavelitos" noExterior="123" noInterior="7A" colonia="Jardin del Potrero" localidad="El Potrero" municipio="Leon" estado="DF" pais="México" codigoPostal="08600" />
+  </cfdi:Receptor>
+  <cfdi:Conceptos>
+    <cfdi:Concepto cantidad="1" unidad="Pieza" noIdentificacion="C123" descripcion="Pago de Colegiatura Noviembre 2011" valorUnitario="4000.00" importe="4000.00">
+      <cfdi:ComplementoConcepto>
+        <iedu:instEducativas xsi:schemaLocation="http://www.sat.gob.mx/iedu http://www.sat.gob.mx/sitio_internet/cfd/iedu/iedu.xsd" version="1.0" nombreAlumno="Carlos Uriel Marieles García" CURP="MAGC870912HGTRRS06" nivelEducativo="Profesional técnico" autRVOE="4587-MHD" rfcPago="ASI100623H46" />
+      </cfdi:ComplementoConcepto>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos totalImpuestosRetenidos="1.10" totalImpuestosTrasladados="640.00">
+    <cfdi:Retenciones>
+      <cfdi:Retencion impuesto="ISR" importe="1.10" />
+    </cfdi:Retenciones>
+    <cfdi:Traslados>
+      <cfdi:Traslado impuesto="IVA" tasa="16.00" importe="640.00" />
+    </cfdi:Traslados>
+  </cfdi:Impuestos>
+  <cfdi:Complemento />
+</cfdi:Comprobante>
+
