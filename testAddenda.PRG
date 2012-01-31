@@ -25,7 +25,7 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .XMLversion = 3
+ .XMLversion = CFDVersions.CFDi_30
  .incluirBOM = .F.
 ENDWITH
 
@@ -44,7 +44,6 @@ ENDIF
 LOCAL oCFD, o
 oCFD = CREATEOBJECT("CFDComprobante")
 WITH oCFD
- .Version = "3.0"
  .Serie = "A"
  .Folio = 25815
  .Fecha = DATETIME()

@@ -12,7 +12,7 @@ SET PROCEDURE TO CFDElektraAddenda ADDITIVE   && Addenda para Elektra
 CFDInit()
 
 ?"CFD v" + CFDConf.Version
-?"Demo"
+?"Demo con Addenda (Elektra)"
 ?
 ?
 

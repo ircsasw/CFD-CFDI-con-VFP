@@ -71,6 +71,9 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** VES  Feb 2, 2012     - Correccion de error en metodo Validate de CFDVersionsEnum
+**   					- Actualizacion de la propiedad Version de CFDConf
+**
 ** ARC  Ene 14, 2012    - Se repara error en CFDVersionsEnum que no permitia generar CFDI 3.0
 ** 
 ** VES  Ene 12, 2012	- Nueva version 3.6
@@ -611,11 +614,12 @@ DEFINE CLASS CFDVersionsEnum AS Custom
  PROCEDURE Validate(vNewVal, puCurValue)
   *
   LOCAL uValue
-  uValue = puCurValue
-  
-  IF "[" + ALLT(STR(m.vNewVal)) + "]" $ CFDVersions.validVersionList
-   uValue = m.vNEwVal
-  ELSE
+  IF VARTYPE(m.vNewVal)="N"
+   m.vNEwVal = CFDVersions.ToString(m.vNewVal)
+  ENDIF
+  uValue = CFDVersions.FromString(m.vNewVal)
+  IF EMPTY(uValue)
+   uValue = puCurValue
    MESSAGEBOX("El valor de version indicado no es correcto.",16,"CFD") 
   ENDIF
 
@@ -631,7 +635,7 @@ ENDDEFINE
 *
 DEFINE CLASS CFDConf AS Custom
  *
- Version = "3.5"
+ Version = "3.6"
  OpenSSL = ""
  SMTPServer = ""
  SMTPPort = ""

@@ -5,6 +5,7 @@ DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
  *
  NSTag = "iedu"
  NSUrl = "http://www.sat.gob.mx/iedu"
+ schemaLocation = "http://www.sat.gob.mx/iedu http://www.sat.gob.mx/sitio_internet/cfd/iedu/iedu.xsd"
  
  version = "1.0"		&& Atributo requerido con valor prefijado a 1.0 que indica la versión del estándar bajo el que se encuentra expresado el complemento concepto al comprobante.
  nombreAlumno = ""		&& Atributo requerido para indicar el nombre del Alumno.
@@ -19,7 +20,6 @@ DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
   oParser = CREATE("XMLParser")
   oParser.New()
   oRoot = oParser.XML.addNode("iedu:instEducativas")
-  oRoot.addProp("xsi:schemaLocation","http://www.sat.gob.mx/iedu http://www.sat.gob.mx/sitio_internet/cfd/iedu/iedu.xsd")
   oRoot.addProp("version", THIS.version)
   oRoot.addProp("nombreAlumno", THIS.nombreAlumno)
   oRoot.addProp("CURP", THIS.CURP)

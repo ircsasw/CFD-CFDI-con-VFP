@@ -611,11 +611,12 @@ DEFINE CLASS CFDVersionsEnum AS Custom
  PROCEDURE Validate(vNewVal, puCurValue)
   *
   LOCAL uValue
-  uValue = puCurValue
-  
-  IF "[" + ALLT(STR(m.vNewVal)) + "]" $ CFDVersions.validVersionList
-   uValue = m.vNEwVal
-  ELSE
+  IF VARTYPE(m.vNewVal)="N"
+   m.vNEwVal = CFDVersions.ToString(m.vNewVal)
+  ENDIF
+  uValue = CFDVersions.FromString(m.vNewVal)
+  IF EMPTY(uValue)
+   uValue = puCurValue
    MESSAGEBOX("El valor de version indicado no es correcto.",16,"CFD") 
   ENDIF
 
@@ -631,7 +632,7 @@ ENDDEFINE
 *
 DEFINE CLASS CFDConf AS Custom
  *
- Version = "3.5"
+ Version = "3.6"
  OpenSSL = ""
  SMTPServer = ""
  SMTPPort = ""
@@ -1146,9 +1147,9 @@ DEFINE CLASS CFDComprobante AS Custom
       IF !ISNULL(oItem.Complemento) AND LOWER(oItem.Complemento.ParentClass) == "icfdaddenda"
        oNodo = .addNode("ComplementoConcepto")
        oNodo.Data = oItem.Complemento.ToString() 
-       *IF !EMPTY(oItem.Complemento.NSTag)
+       IF !EMPTY(oItem.Complemento.NSTag)
         oParser.XML._Comprobante.addProp("xmlns:" + oItem.Complemento.NSTag, oItem.Complemento.NSUrl)
-       *ENDIF
+       ENDIF
        IF !EMPTY(oItem.Complemento.schemaLocation)
         WITH oParser.XML._Comprobante.Props["xsi:schemaLocation"]
          .Value = .Value + SPACE(1) + oItem.Complemento.schemaLocation
