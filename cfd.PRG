@@ -4293,7 +4293,7 @@ PROCEDURE CFDEnviarPorCorreoAdjuntos(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, 
   IF FILE(FULLPATH(pcCFD))
     .addAttachment(FULLPATH(pcCFD))
   ENDIF 
-  IF FIELD(FULLPATH(pcPDF))
+  IF FILE(FULLPATH(pcPDF))
     .addAttachment(FULLPATH(pcPDF))
   ENDIF 
  ENDWITH

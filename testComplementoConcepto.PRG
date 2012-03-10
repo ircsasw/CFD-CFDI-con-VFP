@@ -31,7 +31,7 @@ WITH CFDConf
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
  *.XMLversion = CFDVersions.CFDi_32
- .XMLversion = CFDVersions.CFDi_30
+ .XMLversion = CFDVersions.CFD_20
  .incluirBOM = .F.
 ENDWITH
 
