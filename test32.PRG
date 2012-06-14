@@ -29,6 +29,7 @@ WITH CFDConf
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
  .XMLversion = CFDVersions.CFDi_32
+ .formatoImpresion  = "CFDI32.FRX"
  .incluirBOM = .F.
 ENDWITH
 
@@ -209,7 +210,7 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-*CFDPrint("test32.xml",,.T.,"TEST32.PDF")
+CFDPrint("test32.xml",,.T.,"TEST32.PDF")
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
