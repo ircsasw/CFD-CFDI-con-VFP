@@ -3258,7 +3258,7 @@ FOR i = 0 TO olNodes.LENGTH - 1
 			
 			*-- Arturo Ramos - Junio 2012
 			CASE sAtributeName = "MontoFolioFiscalOrig"
-				UPDATE (cGenerales) SET MFolioFO	= sAtributeValues
+				UPDATE (cGenerales) SET MFolioFO	= VAL(sAtributeValues)
 			CASE sAtributeName = "FechaFolioFiscalOrig"
 				UPDATE (cGenerales) SET FFolioFO	= sAtributeValues
 			CASE sAtributeName = "SerieFolioFiscalOrig"
@@ -3779,7 +3779,7 @@ PROCEDURE CreaFactura
 	    selloSAT   M       ,;
 	    certSAT    c(030)  ,;
 	    UUID       C(036)  ,;
-	    MFolioFO   N(10,6) ,;
+	    MFolioFO   N(10,6) ,;	&& Tipo especial: t_importe de 2 a 6 decimales
 	    FFolioFO   C(20)   ,;
 	    SFolioFO   C(20)   ,;
 	    FolioFO    C(10)   ,;
