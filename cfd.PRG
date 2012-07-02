@@ -999,7 +999,7 @@ DEFINE CLASS CFDComprobante AS Custom
     	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)
     ENDIF  
     IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)
-    	.addProp("MontoFolioFiscalOrig",THIS._fixStr(THIS.MontoFolioFiscalOrig),CFD_OPCIONAL)
+    	.addProp("MontoFolioFiscalOrig",THIS._fixStr(STR(THIS.MontoFolioFiscalOrig,10,6)),CFD_OPCIONAL)
     	.addProp("FechaFolioFiscalOrig",THIS._fixStr(THIS.FechaFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("SerieFolioFiscalOrig",THIS._fixStr(THIS.SerieFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FolioFiscalOrig",THIS._fixStr(THIS.FolioFiscalOrig),CFD_OPCIONAL)
@@ -1125,7 +1125,7 @@ DEFINE CLASS CFDComprobante AS Custom
      oItem = THIS.Conceptos.Items(i)
      oNodo = .addNode("Concepto")
      WITH oNodo
-      .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad,10,3)))
+      .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad,10,2)))
       .addProp("unidad",THIS._fixStr(oItem.unidad),CFD_OPCIONAL)
       .addProp("noIdentificacion",THIS._fixStr(oItem.noIdentificacion),CFD_OPCIONAL)
       .addProp("descripcion",THIS._fixStr(oItem.descripcion))
@@ -3947,18 +3947,18 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
 
   *-- Se pasa la informacion de retenciones a la tabla de conceptos como banda-4
   *
-  LOCAL cImpuesto,nTasa,nImporte
+  LOCAL cImpuestoR,nImporteR
   SELECT QRE
   GO TOP
   SCAN
    *
-   cImpuesto=impuesto
-   nImporte=importe
+   cImpuestoR="RET. " + ALLTRIM(impuesto)
+   nImporteR=importe
 
-   INSERT INTO QCO (banda, descripcio, importe) ;
-            VALUES (4, cImpuesto, nImporte)
+   INSERT INTO QCO (banda, descripcio, valorunita, importe) ;
+            VALUES (4, cImpuestoR, 0.00, nImporteR)
    *
-   SELECT QTR
+   SELECT QRE
   ENDSCAN
 
 
