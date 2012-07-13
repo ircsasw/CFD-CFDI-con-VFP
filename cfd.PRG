@@ -999,7 +999,7 @@ DEFINE CLASS CFDComprobante AS Custom
     	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)
     ENDIF  
     IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)
-    	.addProp("MontoFolioFiscalOrig",THIS._fixStr(STR(THIS.MontoFolioFiscalOrig,10,6)),CFD_OPCIONAL)
+    	.addProp("MontoFolioFiscalOrig",THIS._fixStr(THIS.MontoFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FechaFolioFiscalOrig",THIS._fixStr(THIS.FechaFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("SerieFolioFiscalOrig",THIS._fixStr(THIS.SerieFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FolioFiscalOrig",THIS._fixStr(THIS.FolioFiscalOrig),CFD_OPCIONAL)
