@@ -72,11 +72,19 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+<<<<<<< HEAD
 ** VES  Abr 27, 2012	- Nuevos parametros opcionales pcMoneda, pcPrefijo y pcSufijo en funcion
 ** 						  CFDNTOCESP() (Colaboracion de DanielCB)
 **						- Nuevas propiedades NTOCMoneda, NTOCPrefijo y NTOCSufijo en objeto CFDConf
 **						
 ** VES  Feb 2, 2012     - Correccion de error en metodo Validate de CFDVersionsEnum
+=======
+** ARC  Jun 13, 2012    - Se modifica CFDToCursor para que reciba CFD 2.2 y CFDI 3.2
+**                      - Se modifica CFDPrint para contener los datos del régimen fiscal dentro
+**                        del cursor general QDG en el campo REGSFIS para la representación impresa
+**
+** VES  Feb  2, 2012    - Correccion de error en metodo Validate de CFDVersionsEnum
+>>>>>>> 66f5f7101344866f80e80d46fbad71fcaff6d2c0
 **   					- Actualizacion de la propiedad Version de CFDConf
 **
 ** ARC  Ene 14, 2012    - Se repara error en CFDVersionsEnum que no permitia generar CFDI 3.0
@@ -1129,7 +1137,7 @@ DEFINE CLASS CFDComprobante AS Custom
      oItem = THIS.Conceptos.Items(i)
      oNodo = .addNode("Concepto")
      WITH oNodo
-      .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad,10,3)))
+      .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad,10,2)))
       .addProp("unidad",THIS._fixStr(oItem.unidad),CFD_OPCIONAL)
       .addProp("noIdentificacion",THIS._fixStr(oItem.noIdentificacion),CFD_OPCIONAL)
       .addProp("descripcion",THIS._fixStr(oItem.descripcion))
@@ -3114,6 +3122,10 @@ ENDPROC
 * Ago  7, 2010 - Arturo Ramos
 * Se adapta para poder recibir un CFDI.
 *
+* Jun 13, 2012 - Arturo Ramos
+* Se adapta para poder recibir CFD 2.2 y CFDI 3.2, para lo que se requiere
+* un nuevo cursor para contener los regimenes fiscales del emisor
+*
 * Parametros de entrada
 * ---------------------
 * ArchivoXML				Archivo XML a cargar en cursores (si no se proporciona lo pide)
@@ -3125,6 +3137,7 @@ ENDPROC
 * <prefijo>AD			Contiene los nodos informacionAduanera
 * <prefijo>RE			Contiene los nodos Retenciones
 * <prefijo>TR			Contiene los nodos Traslados
+* <prefijo>RF			Contiene los nodos RegimenFiscal
 *
 * -----------------------------------------------------------------------------------
 PROCEDURE CFDToCursor
@@ -3160,7 +3173,8 @@ ENDIF
  cConceptos = pcCursorPrefix + "CO" 
  cAduanas = pcCursorPrefix + "AD"  
  cRetenciones = pcCursorPrefix + "RE" 
- cTraslados = pcCursorPrefix + "TR"    
+ cTraslados = pcCursorPrefix + "TR"   
+ cRegimenes =  pcCursorPrefix + "RF"   
 
 
 LOCAL olNodes 
@@ -3254,6 +3268,19 @@ FOR i = 0 TO olNodes.LENGTH - 1
 			CASE sAtributeName = "Moneda"
 				UPDATE (cGenerales) SET Moneda     = sAtributeValues		&& CFDI: Atributo opcional para expresar la moneda utilizada para expresar los montos
 			
+			*-- Arturo Ramos - Junio 2012
+			CASE sAtributeName = "MontoFolioFiscalOrig"
+				UPDATE (cGenerales) SET MFolioFO	= VAL(sAtributeValues)
+			CASE sAtributeName = "FechaFolioFiscalOrig"
+				UPDATE (cGenerales) SET FFolioFO	= sAtributeValues
+			CASE sAtributeName = "SerieFolioFiscalOrig"
+				UPDATE (cGenerales) SET SFolioFO	= sAtributeValues
+			CASE sAtributeName = "FolioFiscalOrig"
+				UPDATE (cGenerales) SET FolioFO		= sAtributeValues
+			CASE sAtributeName = "NumCtaPago"
+				UPDATE (cGenerales) SET NumCtaPago	= sAtributeValues
+			CASE sAtributeName = "LugarExpedicion"
+				UPDATE (cGenerales) SET LugarExp	= sAtributeValues
 		ENDCASE 
 	NEXT j
 NEXT i
@@ -3365,6 +3392,19 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		ENDCASE 
 	NEXT j
 NEXT i
+
+* ---------------------------------------------------------------------------
+* <Comprobante> -- <Emisor> -- <RegimenFiscal>
+* Atributo requerido para incorporar el nombre del régimen en el que tributa el contribuyente emisor.
+* ---------------------------------------------------------------------------
+SELECT (cRegimenes)
+olNodes = xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Emisor")
+IF olNodes.LENGTH <= 0 THEN 
+    CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Emisor> no presente."
+	RETURN .F.
+ENDIF 
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Emisor"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
+SELECT (cGenerales)
 
 
 * ---------------------------------------------------------------------------
@@ -3561,6 +3601,8 @@ UPDATE (cGenerales) SET cadenaOrig = strOriginal
 *!*	BROWSE
 *!*	SELECT (cGenerales)
 *!*	BROWSE 
+*!*	SELECT (cRegimenes)
+*!*	BROWSE
 
 
 RETURN 
@@ -3631,6 +3673,17 @@ FUNCTION LeerDatos
 						CASE sAtributeName = "tasa"
 							REPLACE tasa WITH VAL(sAtributeValues) IN (cTraslados)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
 					ENDCASE 
+				ENDFOR
+			
+			CASE CHILD.nodeName == lcPrefijo+"RegimenFiscal"
+				INSERT INTO (cRegimenes) (regimen) VALUES (" ")
+				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
+					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
+					sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
+					*? j,sAtributeName + "=" + sAtributeValues
+					IF sAtributeName = "Regimen"
+						REPLACE regimen WITH sAtributeValues IN (cRegimenes)	&& Nodo requerido para incorporar los regímenes en los que tributa el contribuyente emisor. Puede contener más de un régimen.
+					ENDIF 
 				ENDFOR
 		ENDCASE  
 		*** Si el nodo que estamos procesando tiene descendencia volvemos a llamar a la función LeerDatos pasandole el nodo actual
@@ -3737,7 +3790,13 @@ PROCEDURE CreaFactura
 	    selloCFD   M       ,;
 	    selloSAT   M       ,;
 	    certSAT    c(030)  ,;
-	    UUID       C(036)   ;
+	    UUID       C(036)  ,;
+	    MFolioFO   N(10,6) ,;	&& Tipo especial: t_importe de 2 a 6 decimales
+	    FFolioFO   C(20)   ,;
+	    SFolioFO   C(20)   ,;
+	    FolioFO    C(10)   ,;
+	    NumCtaPago C(250)  ,;
+	    LugarExp   C(250)   ;
 	   )
 
 	* Datos de las partidas o conceptos que forman la factura
@@ -3776,6 +3835,12 @@ PROCEDURE CreaFactura
 	    fecha       C(010) ,; 
 	    aduana      C(020)  ;
 	   )
+	   
+	* Datos de los regimenes fiscales
+	CREATE CURSOR (cRegimenes) ;
+	   (						;
+	    regimen		C(250) ;
+	   ) 
 
 	swError = .F.
 	
@@ -3833,6 +3898,14 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
    RETURN .F.
   ENDIF
   
+  *-- Se anade una columna REGSFIS al cursor de datos generales
+  *
+  ALTER TABLE QDG ADD regsfis M
+  SELECT QRF
+  SCAN
+    REPLACE regsfis WITH ALLTRIM(regsfis)+" "+ALLTRIM(QRF.regimen) IN QDG
+  ENDSCAN
+  
   *-- Se reemplazan los conceptos por los que estan en el entorno (curConceptos)
   *
   *   VES Oct 10, 2011: Se elimino la clausula READWRITE para usar una tecnica 
@@ -3886,18 +3959,18 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
 
   *-- Se pasa la informacion de retenciones a la tabla de conceptos como banda-4
   *
-  LOCAL cImpuesto,nTasa,nImporte
+  LOCAL cImpuestoR,nImporteR
   SELECT QRE
   GO TOP
   SCAN
    *
-   cImpuesto=impuesto
-   nImporte=importe
+   cImpuestoR="RET. " + ALLTRIM(impuesto)
+   nImporteR=importe
 
-   INSERT INTO QCO (banda, descripcio, importe) ;
-            VALUES (4, cImpuesto, nImporte)
+   INSERT INTO QCO (banda, descripcio, valorunita, importe) ;
+            VALUES (4, cImpuestoR, 0.00, nImporteR)
    *
-   SELECT QTR
+   SELECT QRE
   ENDSCAN
 
 
@@ -3912,7 +3985,7 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
   *
   SELECT QCO
   GO TOP
-
+  
 
   *-- Se emite el reporte
   *
@@ -4306,7 +4379,7 @@ PROCEDURE CFDEnviarPorCorreoAdjuntos(pcDestinatario, pcAsunto, pcCuerpo, pcCFD, 
   IF FILE(FULLPATH(pcCFD))
     .addAttachment(FULLPATH(pcCFD))
   ENDIF 
-  IF FIELD(FULLPATH(pcPDF))
+  IF FILE(FULLPATH(pcPDF))
     .addAttachment(FULLPATH(pcPDF))
   ENDIF 
  ENDWITH
