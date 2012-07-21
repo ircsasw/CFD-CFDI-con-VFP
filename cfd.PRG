@@ -6,11 +6,12 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.6
+** Version: 3.7
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
 ** - Carlos Figueroa
+** - DanielCB
 ** 
 **
 ** NOTA IMPORTANTE #1
@@ -71,6 +72,10 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** VES  Abr 27, 2012	- Nuevos parametros opcionales pcMoneda, pcPrefijo y pcSufijo en funcion
+** 						  CFDNTOCESP() (Colaboracion de DanielCB)
+**						- Nuevas propiedades NTOCMoneda, NTOCPrefijo y NTOCSufijo en objeto CFDConf
+**						
 ** VES  Feb 2, 2012     - Correccion de error en metodo Validate de CFDVersionsEnum
 **   					- Actualizacion de la propiedad Version de CFDConf
 **
@@ -635,7 +640,7 @@ ENDDEFINE
 *
 DEFINE CLASS CFDConf AS Custom
  *
- Version = "3.6"
+ Version = "3.7"
  OpenSSL = ""
  SMTPServer = ""
  SMTPPort = ""
@@ -652,6 +657,9 @@ DEFINE CLASS CFDConf AS Custom
  formatoImpresion = "CFD.FRX"
  XMLVersion = 0
  incluirBOM = .F.
+ NTOCMoneda = "Pesos"
+ NTOCPrefijo = ""
+ nTOCSufijo = "M.N."
 
  PROCEDURE Init
   THIS.Version = CFDVersions.CFDi_32
@@ -3964,8 +3972,13 @@ ENDPROC
 *
 *   Autor: V. Espina
 *
-PROC CFDNTOCESP(pnNumero)
+PROC CFDNTOCESP(pnNumero,pcMoneda,pcPrefijo,pcSufijo)
  *
+ *-- Se inicializan los parametros opcionales
+ pcMoneda = IIF(VARTYPE(pcMoneda)="C",pcMoneda,CFDConf.NTOCMoneda)
+ pcPrefijo = IIF(VARTYPE(pcPrefijo)="C",pcPrefijo,CFDConf.NTOCPrefijo)
+ pcSufijo = IIF(VARTYPE(pcSufijo)="C",pcSufijo,CFDConf.NTOCSufijo)
+ 
  *-- Se definen algunos datos necesarios
  *
  dimen aFactores[4],aCentenas[10],aDecenas[10],aUnidades[10],aEspeciales[5]
@@ -4083,9 +4096,9 @@ PROC CFDNTOCESP(pnNumero)
  local nDec
  nDec=(pnNumero - int(pnNumero)) * 100
    
- cLetras=PROPER(RTRIM(cLetras)) + " Pesos con "+PADL(INT(nDec),2,"0") + "/100 M.N."
+ cLetras=pcPrefijo + " " + PROPER(RTRIM(cLetras)) + " " + pcMoneda + " con "+PADL(INT(nDec),2,"0") + "/100 " + pcSufijo
  
- cLetras=strt(cLetras,"  "," ")
+ cLetras=ALLTRIM(STRT(cLetras,"  "," "))
    
  return cLetras
  *
