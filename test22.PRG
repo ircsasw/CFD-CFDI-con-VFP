@@ -30,9 +30,8 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .incluirBOM = .F.
+ .incluirBOM = .T.
 ENDWITH
-
 
 ?"- Probando OpenSSL..."
 IF CFDProbarOpenSSL()
@@ -210,7 +209,12 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-CFDPrint("test22.xml",,.T.,"TEST22.PDF")
+IF CFDPrint("test22.xml",,.T.,"TEST22.PDF")
+ ??" OK"
+ELSE
+ ??" ERROR" 
+ENDIF
+
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados

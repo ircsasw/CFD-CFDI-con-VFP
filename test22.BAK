@@ -4,9 +4,9 @@
 *    de crear el comprobante y no mediante la propiedad XMLVersion. 
 * --
 *
-CLOSE ALL
-CLEAR ALL
-CLEAR
+*CLOSE ALL
+*CLEAR ALL
+*CLEAR
 
 SET CONFIRM OFF
 SET SAFETY OFF
@@ -30,9 +30,8 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .incluirBOM = .F.
+ .incluirBOM = .T.
 ENDWITH
-
 
 ?"- Probando OpenSSL..."
 IF CFDProbarOpenSSL()
@@ -77,7 +76,7 @@ WITH oCFD
  .Emisor.RFC = "GOYA780416GM0"
  *.Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ"   && Opcional en 2.2
  
- * -- Opcional en 2.2
+ * -- DomicilioFiscal Opcional en 2.2
  *.Emisor.domicilioFiscal.Calle = "Benito Juarez Ote"
  *.Emisor.domicilioFiscal.noExterior = "106"
  *.Emisor.domicilioFiscal.noInterior = "1" 
@@ -85,33 +84,36 @@ WITH oCFD
  *.Emisor.domicilioFiscal.Municipio = "Cd. Guadalupe"
  *.Emisor.domicilioFiscal.Localidad = "México" 
  *.Emisor.domicilioFiscal.Estado = "Nuevo León"
- *.Emisor.domicilioFiscal.Pais = "Mexico"
+ *.Emisor.domicilioFiscal.Pais = "Mexico"   && Único Requerido si DomicilioFiscal esta presente
  *.Emisor.domicilioFiscal.codigoPostal = "67100"
  
- .Emisor.expedidoEn.Calle = "Benito Juarez Ote"
- .Emisor.expedidoEn.noExterior = "106"
- .Emisor.expedidoEn.noInterior = "1" 
- .Emisor.expedidoEn.Colonia = "Centro"
- .Emisor.expedidoEn.Municipio = "Cd. Guadalupe"
- .Emisor.expedidoEn.Localidad = "Cd. Guadalupe" 
- .Emisor.expedidoEn.Estado = "Nuevo León"
- .Emisor.expedidoEn.Pais = "México"	
- .Emisor.expedidoEn.codigoPostal = "67100"
+ * -- ExpedidoEn Opcional
+ *.Emisor.expedidoEn.Calle = "Benito Juarez Ote"
+ *.Emisor.expedidoEn.noExterior = "106"
+ *.Emisor.expedidoEn.noInterior = "1" 
+ *.Emisor.expedidoEn.Colonia = "Centro"
+ *.Emisor.expedidoEn.Municipio = "Cd. Guadalupe"
+ *.Emisor.expedidoEn.Localidad = "Cd. Guadalupe" 
+ *.Emisor.expedidoEn.Estado = "Nuevo León"
+ *.Emisor.expedidoEn.Pais = "México"	  && Único Requerido si ExpedidoEn esta presente
+ *.Emisor.expedidoEn.codigoPostal = "67100"
 
- * -- Nuevo y obligatorio en 2.2
+ * -- Nuevo y obligatorio en 2.2 (puede ser uno o muchos)
  .Emisor.RegimenFiscal.Regimen = "Actividad Empresarial"
  
  .Receptor.RFC = "EAM001231D51"
- .Receptor.Nombre = "ENVASADORAS DE AGUAS EN MÉXICO, S. DE R. L. DE C.V." 
- .Receptor.domicilioFiscal.Calle = "AVE. LA SILLA"
- .Receptor.domicilioFiscal.noExterior = "7707"
- .Receptor.domicilioFiscal.noInterior = "1" 
- .Receptor.domicilioFiscal.Colonia = "PARQUE INDUSTRIAL LA SILLA"
- .Receptor.domicilioFiscal.Localidad = "GUADALUPE" 
- .Receptor.domicilioFiscal.Municipio = "GUADALUPE"
- .Receptor.domicilioFiscal.Estado = "NUEVO LEÓN"
- .Receptor.domicilioFiscal.Pais = "México"
- .Receptor.domicilioFiscal.codigoPostal = "67190"
+ *.Receptor.Nombre = "ENVASADORAS DE AGUAS EN MÉXICO, S. DE R. L. DE C.V."    && Opcional en 2.2
+ 
+ * -- Domicilio de Receptor opcional en 2.2
+ *.Receptor.domicilioFiscal.Calle = "AVE. LA SILLA"
+ *.Receptor.domicilioFiscal.noExterior = "7707"
+ *.Receptor.domicilioFiscal.noInterior = "1" 
+ *.Receptor.domicilioFiscal.Colonia = "PARQUE INDUSTRIAL LA SILLA"
+ *.Receptor.domicilioFiscal.Localidad = "GUADALUPE" 
+ *.Receptor.domicilioFiscal.Municipio = "GUADALUPE"
+ *.Receptor.domicilioFiscal.Estado = "NUEVO LEÓN"
+ *.Receptor.domicilioFiscal.Pais = "México"   && Único Requerido si Domicilio esta presente
+ *.Receptor.domicilioFiscal.codigoPostal = "67190"
  
  .Impuestos.Traslados.Add("IVA",16.00,640.00)
  
@@ -207,7 +209,12 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-CFDPrint("test22.xml",,.T.,"TEST22.PDF")
+IF CFDPrint("test22.xml",,.T.,"TEST22.PDF")
+ ??" OK"
+ELSE
+ ??" ERROR" 
+ENDIF
+
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
