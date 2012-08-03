@@ -72,6 +72,8 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** VES  Ago 3, 2012		- Correccion al crear el XML con mas de un complemento de concepto
+**
 ** VES  Jul 30, 2012	- Nueva version 3.7
 **						= Nueva funcion CFDCreateQR() basada en el DLL barcodelibrary.dll
 **
@@ -1184,7 +1186,11 @@ DEFINE CLASS CFDComprobante AS Custom
        oNodo = .addNode("ComplementoConcepto")
        oNodo.Data = oItem.Complemento.ToString() 
        IF !EMPTY(oItem.Complemento.NSTag)
-        oParser.XML._Comprobante.addProp("xmlns:" + oItem.Complemento.NSTag, oItem.Complemento.NSUrl)
+        * VES Ago 3, 2012: Se valida que no se haya declarado el Namespace anteriormente, antes
+        * de anadir su declaracion en las propiedades del nodo Comprobante 
+        IF NOT oParser.XML._Comprobante.isProp("xmlns:" + oItem.Complemento.NSTag)
+         oParser.XML._Comprobante.addProp("xmlns:" + oItem.Complemento.NSTag, oItem.Complemento.NSUrl)
+        ENDIF
        ENDIF
        IF !EMPTY(oItem.Complemento.schemaLocation)
         WITH oParser.XML._Comprobante.Props["xsi:schemaLocation"]

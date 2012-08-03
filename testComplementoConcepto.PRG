@@ -133,6 +133,23 @@ WITH oCFD
   .autRVOE="4587-DHM"
   .rfcPago = "ASI100623H46"
  ENDWITH
+
+
+ o = .Conceptos.Add(1.000, "PAGO DE COLEGIATURA ENERO 2012", 4000.00, 4000.00)    
+ o.noIdentificacion = "COLENE12"
+ o.Unidad = "PIEZA"
+  
+ *-- El complemento se implementa asignando una instancia de una clase derivada
+ *   de ICFDAddenda. En este caso, la clase es CFDComplementoIEDU (ver el archivo
+ *   CFDCOMPLEMENTOIEDU.PRG)
+ o.Complemento = CREATEOBJECT("CFDComplementoIEDU")
+ WITH o.Complemento
+  .nombreAlumno = "Victor Espina S"
+  .CURP = "MAGC870912HGTRRS05" 
+  .nivelEducativo = "Profesional técnico"
+  .autRVOE="4587-DHX"
+  .rfcPago = "ASI100623H48"
+ ENDWITH
  
  
 ENDWITH
