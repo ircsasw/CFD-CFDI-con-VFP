@@ -72,6 +72,8 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** VES	Ago 23, 2012	- Correccion al crear el XML cuando no se indica valor en la propiedad opcional "Aduana"
+**
 ** VES  Ago 3, 2012		- Correccion al crear el XML con mas de un complemento de concepto
 **
 ** VES  Jul 30, 2012	- Nueva version 3.7
@@ -1168,7 +1170,11 @@ DEFINE CLASS CFDComprobante AS Custom
        WITH .Nodes[1]  && VES Nov 11, 2011
         .addProp("numero",THIS._fixStr(oItem.informacionAduanera.numero))
         .addProp("fecha",THIS._fixStr(oItem.informacionAduanera.fecha))        
-        .addProp("aduana",THIS._fixStr(oItem.informacionAduanera.aduana))        
+        * VES Ago 23, 2012
+        * Se incluye la propiedad Aduana solo si la misma no esta vacia
+        IF !EMPTY(oItem.informacionAduanera.aduana)
+         .addProp("aduana",THIS._fixStr(oItem.informacionAduanera.aduana))        
+        ENDIF
        ENDWITH
       ENDIF
 
