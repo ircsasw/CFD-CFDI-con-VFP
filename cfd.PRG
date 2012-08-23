@@ -763,7 +763,7 @@ DEFINE CLASS CFDComprobante AS Custom
  PROCEDURE cadenaOriginal_Access
   RETURN THIS._genCadenaOriginal()
  ENDPROC
- PROCEDURE cadenaPriginal_Assign(vNewVal)
+ PROCEDURE cadenaOriginal_Assign(vNewVal)
  ENDPROC 
  
  
