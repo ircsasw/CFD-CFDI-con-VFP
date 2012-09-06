@@ -122,7 +122,7 @@ WITH oCFD
  o.Unidad = "PIEZA"
  o.informacionAduanera.numero = "12345678901" 
  o.informacionAduanera.fecha = CTOD("15-12-2009")
- o.informacionAduanera.aduana = "240"
+ o.informacionAduanera.aduana = ""
 
  o = .Conceptos.Add(1.000, "CORTADORA CIRCULAR DE 1/2", 1696.00, 1696.00)    
  o.noIdentificacion = "CCIRC-98"

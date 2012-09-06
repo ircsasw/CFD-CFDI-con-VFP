@@ -4,9 +4,9 @@
 *    de crear el comprobante y no mediante la propiedad XMLVersion. 
 * --
 *
-*CLOSE ALL
-*CLEAR ALL
-*CLEAR
+CLOSE ALL
+CLEAR ALL
+CLEAR
 
 SET CONFIRM OFF
 SET SAFETY OFF

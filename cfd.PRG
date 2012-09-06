@@ -68,6 +68,21 @@
 ** "ADDENDAS.TXT" para informacion sobre como generar addendas.
 **
 **
+** NOTA IMPORANTE #6
+** En algunos casos puede suceder que al intentar utilizar la clase CFD o ejecutar los programas de
+** prueba, se obtenga el siguiente mensaje de error:
+**
+** SCRIPTING.FILESYTEM.OBJECT not found
+**
+** Este error puede deberse a una actualizacion de Windows que fallo al registrar la libreria
+** SCRRUN.DLL. Para solucionar el problema, por favor siga estos pasos (cortesia de Marco Garcia):
+**
+** a) Abra una ventana de comandos (Inicio->Ejecutar->cmd.exe)
+** b) En la ventana de comandos, escriba los siguientes comandos (pulse ENTER luego de escribir cada linea):
+**    CD \windows\system32 
+**    regsvr32 scrrun.dll
+**
+**
 ****************************************************************************
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
