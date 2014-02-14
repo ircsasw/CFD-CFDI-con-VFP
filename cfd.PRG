@@ -6,7 +6,7 @@
 **
 ** Autores: Victor Espina / Arturo Ramos / Baltazar Moreno
 **
-** Version: 3.7
+** Version: 3.8
 ** 
 ** Basado en colaboraciones de:
 ** - Halcon Divino
@@ -87,6 +87,11 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** ARC  Feb 14, 2014	- Correccion al crear comprobante no incluia el nodo CuentaPredial
+**						- Cambios en CFDtoCursor para guardar el dato de la cuenta predial en cConcepto.nopredio
+**						- Cambios en CFDToCursor para leer y guardar los datos del complemento iedu:instEducativas en 
+** 						  los campos ieduNomAl, ieduCURP, ieduNivEd, ieduRVOE, ieduRFCPa del cursor de conceptos
+** 
 ** VES	Ago 23, 2012	- Correccion al crear el XML cuando no se indica valor en la propiedad opcional "Aduana"
 **
 ** VES  Ago 3, 2012		- Correccion al crear el XML con mas de un complemento de concepto
@@ -3177,6 +3182,10 @@ ENDPROC
 * Se adapta para poder recibir CFD 2.2 y CFDI 3.2, para lo que se requiere
 * un nuevo cursor para contener los regimenes fiscales del emisor
 *
+* Feb 14, 2014 - Arturo Ramos
+* Se agrega la lectura del nodo CuentaPredial que se almacena en el cursor de Conceptos campo nopredio
+* Se agrega la lectura del complemento de Escualas (iedu:instEducativas) se guarda en el cursor de Conceptos
+*
 * Parametros de entrada
 * ---------------------
 * ArchivoXML				Archivo XML a cargar en cursores (si no se proporciona lo pide)
@@ -3707,7 +3716,18 @@ FUNCTION LeerDatos
 					ENDCASE 
 				ENDFOR
 				
-			
+			CASE CHILD.nodeName == lcPrefijo+"CuentaPredial"
+				SELECT (cConceptos)
+				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
+					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
+					sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
+					*? j,sAtributeName + "=" + sAtributeValues
+					DO CASE 
+						CASE sAtributeName = "numero"
+							REPLACE nopredio WITH sAtributeValues
+					ENDCASE 
+				ENDFOR
+				
 			CASE CHILD.nodeName == lcPrefijo+"Retencion"
 				INSERT INTO (cRetenciones) (impuesto) VALUES (" ")
 				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
@@ -3767,6 +3787,26 @@ FUNCTION LeerDatos
 				LOCAL oIA
 				SCATTER NAME oIA
 				INSERT INTO (cAduanas) VALUES (oIA.noid, oIA.ianumero, oIA.iafecha, oIA.iaaduana)
+				
+			CASE CHILD.nodeName == "iedu:instEducativas"
+			    SELECT (cConceptos)
+				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
+					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
+					sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
+					*? j,sAtributeName + "=" + sAtributeValues
+					DO CASE 
+						CASE sAtributeName = "nombreAlumno"
+							REPLACE ieduNomAl WITH sAtributeValues IN (cConceptos)
+						CASE sAtributeName = "CURP"
+							REPLACE ieduCURP WITH sAtributeValues IN (cConceptos)
+						CASE sAtributeName = "nivelEducativo"
+							REPLACE ieduNivEd WITH sAtributeValues IN (cConceptos)
+						CASE sAtributeName = "autRVOE"
+							REPLACE ieduRVOE WITH sAtributeValues IN (cConceptos)
+						CASE sAtributeName = "rfcPago"
+							REPLACE ieduRFCPa WITH sAtributeValues IN (cConceptos)
+					ENDCASE 
+				ENDFOR
 
 
 		ENDCASE  
@@ -3896,7 +3936,12 @@ PROCEDURE CreaFactura
 	    nopredio    C(050)  ,;
 	    ianumero	C(50)   ,;  && Informacion aduanera - numero
 	    iafecha		C(10)	,;  && Informacion aduanera - fecha
-	    iaaduana	C(50)	;   && Informacion aduanera - aduana	 
+	    iaaduana	C(50)	,;  && Informacion aduanera - aduana
+	    ieduNomAl	C(80)	,;	&& Complemento iedu: nombreAlumno
+	    ieduCURP	C(18)	,;	&& Complemento iedu: CURP
+	    ieduNivEd	C(40)	,;	&& Complemento iedu: nivelEducativo
+	    ieduRVOE	C(40)	,;	&& Complemento iedu: autRVOE
+	    ieduRFCPa	C(13)	 ;  && Complemento iedu: rfcPago
 	   )
 	
 	* Datos de retenciones
