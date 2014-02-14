@@ -1,0 +1,12 @@
+
+INSTRUCCIONES PARA USAR EL GIT
+
+a) Actualizar la copia local con los ultimos cambios en el repositorio:
+git pull
+
+b) Actualizar el repositorio con los cambios locales:
+git add .
+git commit -m "Descripcion"
+git push
+
+

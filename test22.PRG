@@ -30,9 +30,8 @@ WITH CFDConf
  .SMTPPassword = "su-contrasena"
  .MailSender = "sucuenta@gmail.com"
  .modoPruebas = .T.
- .incluirBOM = .F.
+ .incluirBOM = .T.
 ENDWITH
-
 
 ?"- Probando OpenSSL..."
 IF CFDProbarOpenSSL()
@@ -123,7 +122,7 @@ WITH oCFD
  o.Unidad = "PIEZA"
  o.informacionAduanera.numero = "12345678901" 
  o.informacionAduanera.fecha = CTOD("15-12-2009")
- o.informacionAduanera.aduana = "240"
+ o.informacionAduanera.aduana = ""
 
  o = .Conceptos.Add(1.000, "CORTADORA CIRCULAR DE 1/2", 1696.00, 1696.00)    
  o.noIdentificacion = "CCIRC-98"
@@ -210,7 +209,12 @@ ENDIF
 *-- Se graba el CFD como PDF (se requiere PDFCreator)
 *
 ?"- Generando PDF"
-CFDPrint("test22.xml",,.T.,"TEST22.PDF")
+IF CFDPrint("test22.xml",,.T.,"TEST22.PDF")
+ ??" OK"
+ELSE
+ ??" ERROR" 
+ENDIF
+
 
 
 *!*	*-- Se envia el CFD por correo. Configure los parametros apropiados
