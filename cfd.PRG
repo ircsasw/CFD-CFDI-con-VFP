@@ -1143,7 +1143,7 @@ DEFINE CLASS CFDComprobante AS Custom
 
       IF !EMPTY(oItem.CuentaPredial.Numero)
        .addNode("CuentaPredial")
-       WITH ._CuentaPredial
+       WITH .Nodes[1]  && ARC Feb 2, 2014
         .addProp("numero",THIS._fixStr(oItem.CuentaPredial.numero))
        ENDWITH
       ENDIF
