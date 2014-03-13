@@ -3,6 +3,8 @@
 *
 DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
  *
+ #DEFINE CFD_OPCIONAL		.T. 
+ 
  NSTag = "iedu"
  NSUrl = "http://www.sat.gob.mx/iedu"
  schemaLocation = "http://www.sat.gob.mx/iedu http://www.sat.gob.mx/sitio_internet/cfd/iedu/iedu.xsd"
@@ -25,7 +27,7 @@ DEFINE CLASS CFDComplementoIEDU AS ICFDAddenda
   oRoot.addProp("CURP", THIS.CURP)
   oRoot.addProp("nivelEducativo",THIS.nivelEducativo)
   oRoot.addProp("autRVOE",THIS.autRVOE)
-  oRoot.addProp("rfcPago",THIS.rfcPago)
+  oRoot.addProp("rfcPago",THIS.rfcPago, CFD_OPCIONAL) && ARC 04/03/14 - rfcPago es opcional
 
   RETURN oRoot.ToString()  
   

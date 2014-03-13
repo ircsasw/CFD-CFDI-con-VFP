@@ -24,6 +24,7 @@
 	<xsl:include href="<ssl-path>/pfic.xslt"/>
 	<xsl:include href="<ssl-path>/TuristaPasajeroExtranjero.xslt"/>
 	<xsl:include href="<ssl-path>/leyendasFisc.xslt"/>
+	<xsl:include href="<ssl-path>/nomina11.xslt"/>
 	<!-- Aquí iniciamos el procesamiento de la cadena original con su | inicial y el terminador || -->
 	<xsl:template match="/">|<xsl:apply-templates select="/cfdi:Comprobante"/>||</xsl:template>
 	<!--  Aquí iniciamos el procesamiento de los datos incluidos en el comprobante -->

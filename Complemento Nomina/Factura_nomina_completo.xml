@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:nomina="http://www.sat.gob.mx/nomina" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd http://www.sat.gob.mx/nomina http://www.sat.gob.mx/sitio_internet/cfd/nomina/nomina11.xsd" version="3.2" serie="001" folio="1187" fecha="2013-12-05T09:27:49" sello="vhJVKLOmZh9ZyahszaXpBdWCbue4hPLq4E1EA5OHdChyZxmq0MbpTyZwUb7D0fdLTO+tRGV97l74DVyvL62l4LIF/kCVyk1I9KW8MKVYwmX+RWgwjTiEOqZ3Zk2tBZByXPAsVA1ZQs/rsK05+oy03+gsIA0dBhWCKquWYkBTUw8=" formaDePago="Pago en una sola exhibicion" noCertificado="20001000000200000216" certificado="MIIEMTCCAxmgAwIBAgIUMjAwMDEwMDAwMDAyMDAwMDAyMTYwDQYJKoZIhvcNAQEFBQAwggFcMRowGAYDVQQDDBFBLkMuIDIgZGUgcHJ1ZWJhczEvMC0GA1UECgwmU2VydmljaW8gZGUgQWRtaW5pc3RyYWNpw7NuIFRyaWJ1dGFyaWExODA2BgNVBAsML0FkbWluaXN0cmFjacOzbiBkZSBTZWd1cmlkYWQgZGUgbGEgSW5mb3JtYWNpw7NuMSkwJwYJKoZIhvcNAQkBFhphc2lzbmV0QHBydWViYXMuc2F0LmdvYi5teDEmMCQGA1UECQwdQXYuIEhpZGFsZ28gNzcsIENvbC4gR3VlcnJlcm8xDjAMBgNVBBEMBTA2MzAwMQswCQYDVQQGEwJNWDEZMBcGA1UECAwQRGlzdHJpdG8gRmVkZXJhbDESMBAGA1UEBwwJQ295b2Fjw6FuMTQwMgYJKoZIhvcNAQkCDCVSZXNwb25zYWJsZTogQXJhY2VsaSBHYW5kYXJhIEJhdXRpc3RhMB4XDTEyMTAyMzE3MTYzM1oXDTE2MTAyMzE3MTYzM1owgasxIDAeBgNVBAMUF0FOQSBDRUNJTElBIEdPTUVaIFlB0UVaMSAwHgYDVQQpFBdBTkEgQ0VDSUxJQSBHT01FWiBZQdFFWjEgMB4GA1UEChQXQU5BIENFQ0lMSUEgR09NRVogWUHRRVoxFjAUBgNVBC0TDUdPWUE3ODA0MTZHTTAxGzAZBgNVBAUTEkdPWUE3ODA0MTZNREZSTk4wOTEOMAwGA1UECxMFTGVudGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANE54X4JwhPUkVhaLN32fbVSUzrtl83qTdsKpUFIt0CpTg+8SVwLO1FPih+eQ9hvoPJPdyM601bwf+vLB3iRp6hHQKSMUB1MXjDuPvkrcKEf2LR/5gAN+aXdfmPQj9NlV47v7Yj0HY6PkSWytxsAgha3gaWr/uKzcCvkx7HQS1+zAgMBAAGjHTAbMAwGA1UdEwEB/wQCMAAwCwYDVR0PBAQDAgbAMA0GCSqGSIb3DQEBBQUAA4IBAQA6W3YebSopPcWQn6EY6Af0Xcalet2kC+7sL03OOQl+GhGvjRzMBLNbNAZEAyqCZ94fU2lvpHs6+dWcRh1byr4o9odCKFngxY2neGCjidZwWBmjRVwnd29TzSTfH62B0xcwfur9BgVAqRLBTUvQMe3n5IqXs/by1GNEjkkTK/Rkyjoc8UmIuqvLz4zb36jbFJljGzWlqucYTg1Lr/LlloQnsEFsujDNPEHr/IBHiQhKA604gl3gYaXqoX1XICwv1ZUUyBm0AJdhQdNeeCSpEHgiEObdz9caN54NG4dEaTCBBnx0PMPvZ5KQqMTs1w5uYGAAwmxZOdbKwZibrTC5HEie" condicionesDePago="Comprobante expresado en: Pesos. Con tipo de cambio:1" subTotal="-911.8400" TipoCambio="1.0000" Moneda="Pesos" total="-879.8400" metodoDePago="Efectivo" tipoDeComprobante="ingreso" LugarExpedicion="Victoria,Tamaulipas,México">
+	<cfdi:Emisor rfc="GOYA780416GM0" nombre="EMPRESA DE DEMOSTRACION S.A. DE C.V.">
+		<cfdi:DomicilioFiscal calle="Libramiento Naciones Unidas" noExterior="NUM. 301" colonia="Col. del Sur" municipio="Victoria" estado="Tamaulipas" pais="México" codigoPostal="87087"/>
+		<cfdi:RegimenFiscal Regimen="Régimen de pequeño contribuyente"/>
+	</cfdi:Emisor>
+	<cfdi:Receptor rfc="DEI980729LK2" nombre="DE INOXIDABLE, S.A. DE C.V.">
+		<cfdi:Domicilio calle="JUPITER" noExterior="19" colonia="NUEVA INDUSTRIAL" localidad="VALLEJO" municipio="GUSTAVO A. MADERO" estado="MEXICO, D.F." pais="México" codigoPostal="07700"/>
+	</cfdi:Receptor>
+	<cfdi:Conceptos>
+		<cfdi:Concepto cantidad="1.00" unidad="cajas" noIdentificacion="A04" descripcion="SUELDO" valorUnitario="1500.00" importe="1500.00"/>
+	</cfdi:Conceptos>
+	<cfdi:Impuestos totalImpuestosTrasladados="0.00">
+  </cfdi:Impuestos>
+	<cfdi:Complemento>
+		<nomina:Nomina Version="1.1" RegistroPatronal="03030303030" NumEmpleado="000001" CURP="PESH880507HVZXRB00" TipoRegimen="1" NumSeguridadSocial="SRIRIIR00030303" FechaPago="2013-11-20" FechaInicialPago="2013-11-20" FechaFinalPago="2013-11-20" NumDiasPagados="1" Departamento="Sistemas" CLABE="000000000000000000" Banco="010" FechaInicioRelLaboral="2013-11-20" Antiguedad="1" Puesto="puesto" TipoContrato="tipocontrato" TipoJornada="tipojornada" PeriodicidadPago="PeriodicidadPago" SalarioBaseCotApor="1" RiesgoPuesto="3" SalarioDiarioIntegrado="1">
+			<nomina:Percepciones TotalGravado="1" TotalExento="1">
+				<nomina:Percepcion TipoPercepcion="010" Clave="00001" Concepto="CONCEPTO DE INGRESO 1" ImporteGravado="1" ImporteExento="1"/>
+				<nomina:Percepcion TipoPercepcion="010" Clave="00001" Concepto="CONCEPTO DE INGRESO 2" ImporteGravado="1" ImporteExento="1"/>
+			</nomina:Percepciones>
+			<nomina:Deducciones TotalGravado="1" TotalExento="1">
+				<nomina:Deduccion TipoDeduccion="010" Clave="IMSS" Concepto="Pago al IMSS" ImporteGravado="1" ImporteExento="1"/>
+				<nomina:Deduccion TipoDeduccion="010" Clave="INFONAVIT" Concepto="Pago al INFONAVIT" ImporteGravado="1.123456" ImporteExento="1.123456"/>
+			</nomina:Deducciones>
+			<nomina:Incapacidades>
+				<nomina:Incapacidad DiasIncapacidad="2" TipoIncapacidad="3" Descuento="1"/>
+				<nomina:Incapacidad DiasIncapacidad="1" TipoIncapacidad="1" Descuento="1"/>
+			</nomina:Incapacidades>
+			<nomina:HorasExtras>
+				<nomina:HorasExtra Dias="2" TipoHoras="Dobles" HorasExtra="33" ImportePagado="1"/>
+			</nomina:HorasExtras>			
+		</nomina:Nomina>
+	</cfdi:Complemento>
+</cfdi:Comprobante>
