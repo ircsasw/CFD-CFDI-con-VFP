@@ -2,7 +2,12 @@
 * -- Este ejemplo genera un CFD version 3.2 utilizando la clase CFD y
 * -- mostrando el uso del nodo Complemento de un Comprobante.
 * --
+** Autores: Victor Espina / Arturo Ramos
+** 
+** ARC  Mar 17, 2014	- Se Agrega soporte para nodos Percepciones, Deducciones, Incapacidades y Horasextras
+** 
 *
+
 CLOSE ALL
 CLEAR ALL
 CLEAR
@@ -120,8 +125,9 @@ WITH oCFD
  .Receptor.domicilioFiscal.Pais = "México"    && Único Requerido si Domicilio esta presente
  .Receptor.domicilioFiscal.codigoPostal = "67190"
  
- * - IVA NO APLICA PARA NOMINAS
- *.Impuestos.Traslados.Add("IVA",16.00,640.00)
+ * - IVA NO APLICA PARA NOMINAS pero retención de ISR si
+ *.Impuestos.Traslados.Add("",0,0)
+ .Impuestos.Retenciones.Add("ISR", 0)
  
  * - Detalles del pago de nomina
  o = .Conceptos.Add(1.000, "SUELDO DE LA JORNADA", 1500.00, 1500.00)    && Cantidad SIEMPRE 1
@@ -129,16 +135,60 @@ WITH oCFD
  o.Unidad = "SERVICIO"						&& Se utilizará la expresión "Servicio"
   
 
- *-- El complemento se implementa asignando una instancia de una clase derivada
- *   de ICFDAddenda. En este caso, la clase es CFDComplementoNomina (ver el archivo
- *   CFDCOMPLEMENTONOMINA.PRG)
- .Complemento = CREATEOBJECT("CFDComplementoNomina")
- WITH .Complemento
-  * 
-  
- ENDWITH
-
 ENDWITH
+
+*-- El complemento se implementa asignando una instancia de una clase derivada
+*   de ICFDAddenda. En este caso, la clase es CFDComplementoNomina (ver el archivo
+*   CFDCOMPLEMENTONOMINA.PRG)
+LOCAL oComplemento
+oComplemento = CREATEOBJECT("CFDComplementoNomina")
+WITH oComplemento
+ * 
+ .RegistroPatronal = "03030303030"
+ .NumEmpleado = "000001"
+ .CURP = "PESH880507HVZXRB00"
+ .TipoRegimen = 1
+ .NumSeguridadSocial = "SRIRIIR00030303"
+ .FechaPago = DATE()
+ .FechaInicialPago = DATE()
+ .FechaFinalPago = DATE()
+ .NumDiasPagados = 1
+ .Departamento = "Sistemas"
+ .CLABE = "000000000000000000"
+ .Banco = 10
+ .FechaInicioRelLaboral = DATE()
+ .Antiguedad = 1
+ .Puesto = "Puesto"
+ .TipoContrato = "tipocontrato"
+ .TipoJornada = "tipojornada"
+ .PeriodicidadPago = "SEMANAL"
+ .SalarioBaseCotApor = 1
+ .RiesgoPuesto = 1
+ .SalarioDiarioIntegrado = 1
+ 
+ * - Procesa PERCEPCIONES
+ .lIncluirPercepciones = .T.
+ .Percepciones.Add("010","00001","CONCEPTO DE INGRESO 1",1.00,1.00)  && pcTipoPercepcion, pcClave, pcConcepto, pnImporteGravado, pnImporteExento
+ .Percepciones.Add("010","00001","CONCEPTO DE INGRESO 2",1.00,1.00)  
+ 
+ * - Procesa las DEDUCCIONES
+ .lIncluirDeducciones = .T.
+ .Deducciones.Add("010","IMSS","PAGO DEL IMSS",1.00,1.00)  && pcTipoDeduccion, pcClave, pcConcepto, pnImporteGravado, pnImporteExento
+ .Deducciones.Add("010","INFONAVIT","PAGO DEL INFONAVIT",1.00,1.00)  
+ 
+ * - Procesa las INCAPACIDADES
+ .lIncluirIncapacidades = .T.
+ .Incapacidades.Add(2, 3, 2)  && pnDiasIncapacidad, pnTipoIncapacidad, pnDescuento
+ .Incapacidades.Add(1, 1, 1)
+ 
+ * - Procesa HORASEXTRAS
+ .lIncluirHorasExtras = .T.
+ .HorasExtras.Add(2, "Dobles", 33, 1)  && pnDias, pcTipoHoras, pnHorasExtra, pnImportePagado
+ 
+ENDWITH
+
+oCFD.Addenda = oComplemento		&& Se usa la propiedad Addenda pero en el complemento se define el nombre del nodo
+
 ??"...Version " + CFDVersions.ToLongString(CFDVersions.fromString(oCFD.Version))
 
 *-- Se carga la informacion del certificado 
@@ -153,7 +203,6 @@ cPasswrdKey = "a0123456789"
 *cArchivoKey = "goya780416gm0_1011181055s.key"
 *cArchivoCer = "goya780416gm0.cer"
 *cPasswrdKey = "12345678a"
-
 
 ?"- Validando archivos key y cer..."
 IF NOT CFDValidarKeyCer(cArchivoKey, cArchivoCer, cPasswrdKey,".\SSL")
@@ -180,7 +229,6 @@ IF (NOT oCert.Vigente) AND (NOT CFDConf.modoPruebas)
 ENDIF
 
 
-
 *-- Se sella el CFD
 *
 ?"- Generando sello digital"
@@ -194,19 +242,19 @@ ENDIF
 *-- Se crea el CFD
 *
 ?"- Creando CFD"
-oCFD.CrearXML("testcomplementoconcepto.xml")
+oCFD.CrearXML("testcomplementonomina.xml")
 
 
 
 *-- Se vaaida el CFD
 *
 ?"- Validando CFD"
-IF NOT CFDValidarXML("testcomplementoconcepto.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
- ?"ERROR: " + CFDConf.ultimoError
- RETURN
-ELSE 
-  ??" OK"
-ENDIF
+*IF NOT CFDValidarXML("testcomplementoconcepto.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
+* ?"ERROR: " + CFDConf.ultimoError
+* RETURN
+*ELSE 
+*  ??" OK"
+*ENDIF
 
 
 
