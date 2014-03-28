@@ -81,7 +81,7 @@ WITH oCFD
  
  
  * - Información del contribuyente emisor del recibo de nómina como CFDI (Patrón).
- .Emisor.RFC = "GOYA780416GM0"				&& RFC del patrón
+ .Emisor.RFC = "AAD990814BP7"				&& RFC del patrón
  .Emisor.nombre = "ANA CECILIA GOMEZ YAÑEZ" && Opcional en 3.2
  
  * -- DomicilioFiscal Opcional en 3.2
@@ -168,13 +168,13 @@ WITH oComplemento
  
  * - Procesa PERCEPCIONES
  .lIncluirPercepciones = .T.
- .Percepciones.Add("010","00001","CONCEPTO DE INGRESO 1",1.00,1.00)  && pcTipoPercepcion, pcClave, pcConcepto, pnImporteGravado, pnImporteExento
- .Percepciones.Add("010","00001","CONCEPTO DE INGRESO 2",1.00,1.00)  
+ .Percepciones.Add("010","00001","CONCEPTO DE INGRESO 1",1.20,1.20)  && pcTipoPercepcion, pcClave, pcConcepto, pnImporteGravado, pnImporteExento
+ .Percepciones.Add("010","00001","CONCEPTO DE INGRESO 2",1.10,1.10)  
  
  * - Procesa las DEDUCCIONES
  .lIncluirDeducciones = .T.
- .Deducciones.Add("010","IMSS","PAGO DEL IMSS",1.00,1.00)  && pcTipoDeduccion, pcClave, pcConcepto, pnImporteGravado, pnImporteExento
- .Deducciones.Add("010","INFONAVIT","PAGO DEL INFONAVIT",1.00,1.00)  
+ .Deducciones.Add("010","IMSS","PAGO DEL IMSS",1.10,1.20)  && pcTipoDeduccion, pcClave, pcConcepto, pnImporteGravado, pnImporteExento
+ .Deducciones.Add("010","INFONAVIT","PAGO DEL INFONAVIT",1.10,1.20)  
  
  * - Procesa las INCAPACIDADES
  .lIncluirIncapacidades = .T.
@@ -183,7 +183,7 @@ WITH oComplemento
  
  * - Procesa HORASEXTRAS
  .lIncluirHorasExtras = .T.
- .HorasExtras.Add(2, "Dobles", 33, 1)  && pnDias, pcTipoHoras, pnHorasExtra, pnImportePagado
+ .HorasExtras.Add(2, "Dobles", 33, 1.25)  && pnDias, pcTipoHoras, pnHorasExtra, pnImportePagado
  
 ENDWITH
 
@@ -195,14 +195,19 @@ oCFD.Addenda = oComplemento		&& Se usa la propiedad Addenda pero en el complemen
 *
 LOCAL cArchivoKey, cArchivoCer
 * Para pruebas con certificados del SAT
-cArchivoKey = "aaa010101aaa_CSD_01.key"
-cArchivoCer = "aaa010101aaa_CSD_01.cer"
-cPasswrdKey = "a0123456789"
+*cArchivoKey = "aaa010101aaa_CSD_01.key"
+*cArchivoCer = "aaa010101aaa_CSD_01.cer"
+*cPasswrdKey = "a0123456789"
 
-* Certificado de pruebas del PAC
+* Certificado de pruebas del PAC - FacturadorElectronico.com
 *cArchivoKey = "goya780416gm0_1011181055s.key"
 *cArchivoCer = "goya780416gm0.cer"
 *cPasswrdKey = "12345678a"
+
+* Certificado de pruebas del PAC - Finkok
+cArchivoKey = "Finkok\aad990814bp7_1210261233s.key"
+cArchivoCer = "Finkok\aad990814bp7_1210261233s.cer"
+cPasswrdKey = "12345678a"
 
 ?"- Validando archivos key y cer..."
 IF NOT CFDValidarKeyCer(cArchivoKey, cArchivoCer, cPasswrdKey,".\SSL")
@@ -249,12 +254,12 @@ oCFD.CrearXML("testcomplementonomina.xml")
 *-- Se vaaida el CFD
 *
 ?"- Validando CFD"
-*IF NOT CFDValidarXML("testcomplementoconcepto.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
-* ?"ERROR: " + CFDConf.ultimoError
-* RETURN
-*ELSE 
-*  ??" OK"
-*ENDIF
+IF NOT CFDValidarXML("testcomplementonomina.xml",cArchivoKey, cPasswrdKey, "sha1", ".\SSL")
+ ?"ERROR: " + CFDConf.ultimoError
+ RETURN
+ELSE 
+  ??" OK"
+ENDIF
 
 
 

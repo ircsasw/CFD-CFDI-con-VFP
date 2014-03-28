@@ -205,8 +205,8 @@ DEFINE CLASS CFDComplementoNominaPercepciones AS CFDCollection
  PROCEDURE ToXML(poParentNode)
   LOCAL oNodo,i,oPercepcion
   oNodo = poParentNode.addNode("nomina:Percepciones")
-  oNodo.addProp("TotalGravado",ALLTRIM(STR(THIS.TotalGravado)))
-  oNodo.addProp("TotalExento",ALLTRIM(STR(THIS.TotalExento)))
+  oNodo.addProp("TotalGravado",ALLTRIM(STR(THIS.TotalGravado,15,2)))
+  oNodo.addProp("TotalExento",ALLTRIM(STR(THIS.TotalExento,15,2)))
   oNodo.createNodeLinks = .F.
   FOR i = 1 TO THIS.Count
    oPercepcion = THIS.Items[i]
@@ -239,8 +239,8 @@ DEFINE CLASS CFDComplementoNominaPercepcion AS Custom
   oNodo.addProp("TipoPercepcion",THIS.TipoPercepcion)
   oNodo.addProp("Clave", THIS.Clave)
   oNodo.addProp("Concepto", THIS.Concepto)
-  oNodo.addProp("ImporteGravado",ALLTRIM(STR(THIS.ImporteGravado)))
-  oNodo.addProp("ImporteExento",ALLTRIM(STR(THIS.ImporteExento)))
+  oNodo.addProp("ImporteGravado",ALLTRIM(STR(THIS.ImporteGravado,15,2)))
+  oNodo.addProp("ImporteExento",ALLTRIM(STR(THIS.ImporteExento,15,2)))
  ENDPROC
 ENDDEFINE
 
@@ -264,8 +264,8 @@ DEFINE CLASS CFDComplementoNominaDeducciones AS CFDCollection
  PROCEDURE ToXML(poParentNode)
   LOCAL oNodo,i,oDeduccion
   oNodo = poParentNode.addNode("nomina:Deducciones")
-  oNodo.addProp("TotalGravado",ALLTRIM(STR(THIS.TotalGravado)))
-  oNodo.addProp("TotalExento",ALLTRIM(STR(THIS.TotalExento)))
+  oNodo.addProp("TotalGravado",ALLTRIM(STR(THIS.TotalGravado,15,2)))
+  oNodo.addProp("TotalExento",ALLTRIM(STR(THIS.TotalExento,15,2)))
   oNodo.createNodeLinks = .F.
   FOR i = 1 TO THIS.Count
    oDeduccion = THIS.Items[i]
@@ -298,8 +298,8 @@ DEFINE CLASS CFDComplementoNominaDeduccion AS Custom
   oNodo.addProp("TipoDeduccion",THIS.tipoDeduccion)
   oNodo.addProp("Clave", THIS.Clave)
   oNodo.addProp("Concepto", THIS.Concepto)
-  oNodo.addProp("ImporteGravado",ALLTRIM(STR(THIS.ImporteGravado)))
-  oNodo.addProp("ImporteExento",ALLTRIM(STR(THIS.ImporteExento)))
+  oNodo.addProp("ImporteGravado",ALLTRIM(STR(THIS.ImporteGravado,15,2)))
+  oNodo.addProp("ImporteExento",ALLTRIM(STR(THIS.ImporteExento,15,2)))
  ENDPROC
 ENDDEFINE
 
@@ -344,9 +344,9 @@ DEFINE CLASS CFDComplementoNominaIncapacidad AS Custom
  PROCEDURE ToXml(poParentNode)
   LOCAL oNodo
   oNodo = poParentNode.addNode("nomina:Incapacidad")
-  oNodo.addProp("DiasIncapacidad", ALLTRIM(STR(THIS.DiasIncapacidad)))
+  oNodo.addProp("DiasIncapacidad", ALLTRIM(STR(THIS.DiasIncapacidad,15,2)))
   oNodo.addProp("TipoIncapacidad", ALLTRIM(STR(THIS.TipoIncapacidad)))
-  oNodo.addProp("Descuento", ALLTRIM(STR(THIS.Descuento)))
+  oNodo.addProp("Descuento", ALLTRIM(STR(THIS.Descuento,15,2)))
  ENDPROC
 ENDDEFINE
 
@@ -396,6 +396,6 @@ DEFINE CLASS CFDComplementoNominaHorasExtra AS Custom
   oNodo.addProp("Dias", ALLTRIM(STR(THIS.Dias)))
   oNodo.addProp("TipoHoras", THIS.TipoHoras)
   oNodo.addProp("HorasExtra", ALLTRIM(STR(THIS.HorasExtra)))
-  oNodo.addProp("ImportePagado", ALLTRIM(STR(THIS.ImportePagado)))
+  oNodo.addProp("ImportePagado", ALLTRIM(STR(THIS.ImportePagado,15,2)))
  ENDPROC
 ENDDEFINE
