@@ -1178,7 +1178,7 @@ DEFINE CLASS CFDComprobante AS Custom
      oItem = THIS.Conceptos.Items(i)
      oNodo = .addNode("Concepto")
      WITH oNodo
-      .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad,10,2)))
+      .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad)))
       .addProp("unidad",THIS._fixStr(oItem.unidad),CFD_OPCIONAL)
       .addProp("noIdentificacion",THIS._fixStr(oItem.noIdentificacion),CFD_OPCIONAL)
       .addProp("descripcion",THIS._fixStr(oItem.descripcion))
@@ -1273,7 +1273,7 @@ DEFINE CLASS CFDComprobante AS Custom
    ENDWITH
 
 
-
+   * set step on 
    *-- Nodo "Addenda"
    *
    *   VES Nov 14, 2011
@@ -5448,8 +5448,7 @@ ENDDEFINE
 PROCEDURE CFDProbarOpenSSL(pcOpenSSL)
  *
  CFDConf.ultimoError = ""
- 
-
+  
  *-- Se verifica que la carpeta indicada contenga el archivo OPENSSL.EXE
  IF EMPTY(pcOpenSSL)
   pcOpenSSL = CFDConf.openSSL
