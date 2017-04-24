@@ -87,6 +87,8 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** ARC	Abr 24, 2017	- Inicio de cambios para versión CFD 3.3
+**
 ** ARC  Feb 14, 2014	- Correccion al crear comprobante no incluia el nodo CuentaPredial
 **						- Cambios en CFDtoCursor para guardar el dato de la cuenta predial en cConcepto.nopredio
 **						- Cambios en CFDToCursor para leer y guardar los datos del complemento iedu:instEducativas en 
