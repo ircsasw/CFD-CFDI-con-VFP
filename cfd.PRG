@@ -1754,7 +1754,30 @@ DEFINE CLASS CFDAddenda AS CFDCollection
  *
 ENDDEFINE
 
+*-- CFDIRelacionados 
+* Expresa la información de los comprobantes fiscales relacionados.
+define class CFDIRelacionados as CFDCollection  
+ *
+ *-- Add (Metodo)
+ *   Incluye un nuevo cfdi relacionado en la lista
+ *
+ procedure Add(pcUUID)
+  local oRelacionado
+  oRelacionado = createobject("CFDIRelacionado")
+  with oRelacionado
+   .UUID = pcUUID
+  endwith
+  
+  return dodefault(oRelacionado)
+ endproc
 
+enddefine 
+
+*-- CFDIRelacionado
+* Expresa la información del comprobante fiscal relacionado. 
+define class CFDIRelacionado as Custom 
+	UUID = "" && Especifica folio fiscal UUID de un comprobante fiscal relacionado con el presente comprobante. 
+enddefine 
 
 *-- CFDCollection (Clase)
 *   Representa una coleccion de elementos
