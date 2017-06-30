@@ -571,10 +571,6 @@
 *   configuraciones generales de uso en varios de 
 *   los metodos y funciones de la libreria
 *
-*   VES Dic 30, 2011
-*   Se aprovecha para declarar algunas enumeraciones de
-*   uso en la clase
-*
 PROCEDURE CFDInit
  *
  PUBLIC CFDVersions,CFDConf
@@ -603,25 +599,17 @@ ENDPROC
 *
 DEFINE CLASS CFDVersionsEnum AS Custom
  *
- CFD_20 = 2
- CFD_22 = 22
- CFDi_30 = 3
  CFDi_32 = 32
- validVersionList = "[2][22][3][32]"
+ CFDi_33 = 33
+ validVersionList = "[32][33]"
 
  PROCEDURE ToString(pnVersion)
   DO CASE
-     CASE pnVersion = THIS.CFD_20
-          RETURN "2.0"
-          
-     CASE pnVersion = THIS.CFD_22
-          RETURN "2.2"
-          
-     CASE pnVersion = THIS.CFDi_30
-          RETURN "3.0"
-          
      CASE pnVersion = THIS.CFDi_32
           RETURN "3.2"
+          
+     CASE pnVersion = THIS.CFDi_33
+          RETURN "3.3"
           
      OTHERWISE
           RETURN ""
@@ -630,17 +618,11 @@ DEFINE CLASS CFDVersionsEnum AS Custom
 
  PROCEDURE FromString(pcVersion)
   DO CASE
-     CASE pcVersion = "2.0"
-          RETURN THIS.CFD_20
-          
-     CASE pcVersion = "2.2"
-          RETURN THIS.CFD_22
-
-     CASE pcVersion = "3.0"
-          RETURN THIS.CFDi_30
-
      CASE pcVersion = "3.2"
           RETURN THIS.CFDi_32
+
+     CASE pcVersion = "3.3"
+          RETURN THIS.CFDi_33
           
      OTHERWISE
           RETURN 0
@@ -649,17 +631,11 @@ DEFINE CLASS CFDVersionsEnum AS Custom
  
  PROCEDURE ToLongString(pcVersion)
   DO CASE
-     CASE pcVersion = THIS.CFD_20
-          RETURN "CFD 2.0"
-          
-     CASE pcVersion = THIS.CFD_22
-          RETURN "CFD 2.2"
-          
-     CASE pcVersion = THIS.CFDi_30
-          RETURN "CFDi 3.0"
-          
      CASE pcVersion = THIS.CFDi_32
           RETURN "CFDi 3.2"
+          
+     CASE pcVersion = THIS.CFDi_33
+          RETURN "CFDi 3.3"
           
      OTHERWISE
           RETURN "Valor incorrecto (" + pcVersion + ")"
@@ -690,7 +666,7 @@ ENDDEFINE
 *
 DEFINE CLASS CFDConf AS Custom
  *
- Version = "3.7"
+ Version = "4"
  OpenSSL = ""
  SMTPServer = ""
  SMTPPort = ""
@@ -701,7 +677,7 @@ DEFINE CLASS CFDConf AS Custom
  MailSender = ""
  UltimoError = ""
  modoPruebas = .F.
- metodoDigest = "md5"
+ metodoDigest = "sha1"
  ubicacionRepositorio = ".\CFD"
  ultimoCertificado = NULL
  formatoImpresion = "CFD.FRX"
@@ -713,9 +689,9 @@ DEFINE CLASS CFDConf AS Custom
  usarPrint2PDF = .T.
 
  PROCEDURE Init
-  THIS.Version = CFDVersions.CFDi_32
+  THIS.Version = CFDVersions.CFDi_33
   THIS.OpenSSL = ADDBS(FULLPATH(".\SSL"))
-  THIS.XMLVersion = CFDVersions.CFDi_32
+  THIS.XMLVersion = CFDVersions.CFDi_33
  ENDPROC
   
  PROCEDURE Version_Assign(vNEwVal)
@@ -737,51 +713,41 @@ DEFINE CLASS CFDComprobante AS Custom
  *
  *-- Atributos requeridos
  * 
- *   ARC Dic 20, 2011: Se agregan las nuevas versiones
- *
- Version = ""  && VES Dic 30, 2011: Se elimino el valor por omision para establecerlo en el constructor
- Folio = 0
- Fecha = {}
- Sello = ""
- noAprobacion = 0
- anoAprobacion = 0
- formaDePago = "Pago en una sola exhibición"
+ Version = "" 
+ Certificado = "" 
  noCertificado = ""
+ Sello = ""
+ Fecha = {}
+ tipoDeComprobante = ""
+ LugarExpedicion = NULL
+ Moneda = NULL
  subTotal = 0.00
  Total = 0.00
- tipoDeComprobante = ""
+ 
+ *-- Atributos opcionales
+ Folio = 0
+ Serie = ""
+  
+ * -- Atributos opcionales condicionales
+ condicionesDePago = ""
+ confirmacion = ""
+ Descuento = 0.00
+ formaPago = "01"  && antes metodoDePago, sale de catálogo. 01 - Efectivo
+ metodoPago = "PUE"  && antes formaDePago, sale de catálogo. PUE - Pago en una sola exhibición
+ TipoCambio = NULL
+ 
+ * -- Nodos
  Emisor = NULL
  Receptor = NULL
  Conceptos = NULL
-  
- 
- *-- Atributos opcionales
- Serie = "" 
- Certificado = "" 
- condicionesDePago = "" 
- Descuento = 0.00
- motivoDescuento = ""
- Impuestos = NULL
- Addenda = NULL
- 
+ Impuestos = NULL 
+ Complemento = NULL
+ Addenda = NULL 
+ CfdiRelacionados = NULL
 
- *-- Atributos CFD 2.2 y CFDI 3.2 opcionales 
- MontoFolioFiscalOrig = NULL
- FechaFolioFiscalOrig = {}
- SerieFolioFiscalOrig = NULL
- FolioFiscalOrig = NULL
- NumCtaPago = NULL 
- Moneda = NULL
- TipoCambio = NULL
- 
- *-- Atributos CFD 2.2 y CFDI 3.2 requeridos 
- LugarExpedicion = NULL
- metodoDePago = ""  && ARC Dic 20, 2011: es requerido en CFD 2.2 y CFDI 3.2
- 
  *-- Propiedades
  cadenaOriginal = ""   && Solo-lectura
  ubicacionOpenSSL = ".\SSL"
-  
  
  *-- Getters / Setters
  PROCEDURE cadenaOriginal_Access
@@ -793,8 +759,6 @@ DEFINE CLASS CFDComprobante AS Custom
  
  *-- Constructor de la clase
  *   
- *   VES Dic 30, 2011: Se incluyo el parametro opcional pnVersion
- *
  PROCEDURE Init(pnVersion)
   *
   IF PCOUNT() = 0   && Si no se indico una version, se asume la version indicada en CFDConf.XMLVersion
@@ -805,7 +769,6 @@ DEFINE CLASS CFDComprobante AS Custom
   THIS.Emisor = CREATEOBJECT("CFDPersona")
   THIS.Receptor = CREATEOBJECT("CFDPersona")
   THIS.Conceptos = CREATEOBJECT("CFDConceptos")
-  THIS.Impuestos = CREATEOBJECT("CFDImpuestos")
   THIS.ubicacionOpenSSL = CFDConf.OpenSSL
   *
  ENDPROC
@@ -827,11 +790,7 @@ DEFINE CLASS CFDComprobante AS Custom
  *-- Metodos
  
  *-- _genCadenaOriginal (Metodo)
- *   Genera la cadena original que sirve de base para generar el sello digital. El codigo original
- *   pertenece al amigo Halcon Divino, y fue adaptado para el uso dentro de esta clase.
- *
- *   VES Ene 4, 2011
- *   Se cambio el codigo para obtener la cadena original directametne del XML aplicando el archivo
+ *   Genera la cadena original que sirve de base para generar el sello digital aplicando el archivo
  *   XSLT proporcionado por el SAT. De esta forma nos garantizamos que no haya diferencia entre
  *   la cadena original generada por la clase y la que genera el SAT a partir del XML, lo cual 
  *   elimina los problemas de sellado por diferencia en la cadena original.
@@ -873,7 +832,7 @@ DEFINE CLASS CFDComprobante AS Custom
  *
  *   Adicionalmente se incluyo codigo para permitir que la funcion reciba cualquier tipo
  *   de datos, haciendo la conversion adecuada segun el tipo. En los casos donde el parametro
- *   de entraada no sea un string, no se realiza la verificacion de caracteres invalidos
+ *   de entrada no sea un string, no se realiza la verificacion de caracteres invalidos
  *
  HIDDEN PROCEDURE _fixStr(puValue, pcSep)
   *
@@ -934,13 +893,10 @@ DEFINE CLASS CFDComprobante AS Custom
   *
   CFDConf.ultimoError = ""
 
-  *-- Si la fecha del comprobante es igual o posterior al 1-1-2011, se cambia
-  *   el metodo MD5 por SHA-1
-  *
   LOCAL cMetodo
-  cMetodo = "md5"
-  IF YEAR(THIS.fecha) > 2010 
-   cMetodo = "sha1"
+  cMetodo = "sha1"
+  IF THIS.Version = "3.3"
+   cMetodo = "sha2"
   ENDIF
   CFDConf.metodoDigest = cMetodo
   
@@ -1016,53 +972,41 @@ DEFINE CLASS CFDComprobante AS Custom
    
    *-- Nodo "Comprobante"
    .XML.addNode("Comprobante")
-   IF INLIST(nVersion, CFDVersions.CFDi_30, CFDVersions.CFDi_32)
+   IF INLIST(nVersion, CFDVersions.CFDi_32, CFDVersions.CFDi_33)
     .XML._Comprobante.NameSpace = "cfdi"  && Al anadir el NS "Cfdi" al nodo comprobante, todos los subnodos lo heredaran automaticamente
    ENDIF
    WITH .XML._Comprobante
     DO CASE 
-      CASE nVersion = CFDVersions.CFD_20
-    	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
-    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
-   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd")
-   		
-      CASE nVersion = CFDVersions.CFDi_30
-   		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
-    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
-   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd")
-   		
-   	  CASE nVersion = CFDVersions.CFD_22
-    	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
-    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
-   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv22.xsd")
-   		
       CASE nVersion = CFDVersions.CFDi_32
    		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd")
+   	
+   	  CASE nVersion = CFDVersions.CFDi_33
+   		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
+    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
+   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd")
    	ENDCASE  
     .addProp("version",THIS._fixStr(THIS.version))
     .addProp("serie",THIS._fixStr(THIS.serie),CFD_OPCIONAL)
-    .addProp("folio",THIS._fixStr(STR(THIS.folio,10,0)))
-    .addProp("fecha",THIS._fixStr(THIS.fecha))
-    IF INLIST(nVersion, CFDVersions.CFD_20, CFDVersions.CFD_22)
-	    .addProp("noAprobacion",THIS._fixStr(STR(THIS.noAprobacion,10,0)))
-    	.addProp("anoAprobacion",THIS._fixStr(STR(THIS.anoAprobacion,10,0)))
-    ENDIF 
-    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_30, CFDVErsions.CFDi_32)
-    	.addProp("Moneda",THIS._fixStr(THIS.moneda),CFD_OPCIONAL)
+    .addProp("folio",THIS._fixStr(STR(THIS.folio,10,0)),CFD_OPCIONAL)
+    .addProp("fecha",THIS._fixStr(THIS.fecha)) 
+    IF INLIST(nVersion, CFDVersions.CFDi_32, CFDVErsions.CFDi_33)
+    	.addProp("Moneda",THIS._fixStr(THIS.moneda))
     	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)
     ENDIF  
-    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)
+    IF INLIST(nVersion, CFDVersions.CFDi_32)
     	.addProp("MontoFolioFiscalOrig",THIS._fixStr(THIS.MontoFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FechaFolioFiscalOrig",THIS._fixStr(THIS.FechaFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("SerieFolioFiscalOrig",THIS._fixStr(THIS.SerieFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FolioFiscalOrig",THIS._fixStr(THIS.FolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("NumCtaPago",THIS._fixStr(THIS.NumCtaPago),CFD_OPCIONAL)
     	.addProp("LugarExpedicion",THIS._fixStr(THIS.LugarExpedicion))
+    	.addProp("metodoDePago",THIS._fixStr(THIS.metodoDePago),CFD_OPCIONAL)
+    	.addProp("formaDePago",THIS._fixStr(THIS.formaDePago))
     ENDIF 
-   	.addProp("metodoDePago",THIS._fixStr(THIS.metodoDePago),CFD_OPCIONAL)
-    .addProp("formaDePago",THIS._fixStr(THIS.formaDePago))
+   	
+    
     *.addProp("",THIS._fixStr(THIS.))
     .addProp("condicionesDePago",THIS._fixStr(THIS.condicionesDePago),CFD_OPCIONAL)
     .addProp("subTotal",THIS._fixStr(STR(THIS.subTotal,15,2)))
