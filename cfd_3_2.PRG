@@ -87,6 +87,8 @@
 **       H I S T O R I A L    D E    M O D I F I C A C I O N E S
 ****************************************************************************
 **
+** ARC	Abr 24, 2017	- Inicio de cambios para versión CFD 3.3
+**
 ** ARC  Feb 14, 2014	- Correccion al crear comprobante no incluia el nodo CuentaPredial
 **						- Cambios en CFDtoCursor para guardar el dato de la cuenta predial en cConcepto.nopredio
 **						- Cambios en CFDToCursor para leer y guardar los datos del complemento iedu:instEducativas en 
@@ -288,26 +290,26 @@
 
 *!*	CFDComprobante {Custom}
 *!*	=======================
-*!*	+Version = "2.0"	&& Se sustituye version por Version		 	Requerido en v.3.3		ByVigar.
-*!*	+Folio				&& Se sustituye folio por Folio			 	Requerido en v.3.3		ByVigar.
-*!*	+Fecha				&& Se sustituye fecha por Fecha			 	Requerido en v.3.3		ByVigar.
-*!*	+Sello [1]			&& Se sustituye sello por Sello			 	Requerido en v.3.3		ByVigar.
+*!*	+Version = "2.0"
+*!*	+Folio 
+*!*	+Fecha 
+*!*	+Sello [1]
 *!*	+noAprobacion 
 *!*	+anoAprobacion
-*!*	+FormaPago			&& Se sustituye formadePago por FormaPago 	Requerido en v.3.3		ByVigar.
-*!*	+NoCertificado 
-*!*	+SubTotal 			&& Se sustituye subTotal por SubTotal	 	Requerido en v.3.3		ByVigar.
+*!*	+formaDePago
+*!*	+noCertificado 
+*!*	+subTotal 
 *!*	+Total 
-*!*	+TipoDeComprobante	&& Se sustituye tipoDeComprobante por TipoDeComprobante	 	Requerido en v.3.3		ByVigar.
+*!*	+tipoDeComprobante 
 *!*	+Emisor {CFDPersona}
-*!*	+Receptor {CFDPersona}		UsoCFDI	&& NUEVA PROPIEDAD usar valores del catalago sat c_UsoCFDI	Requerido en v.3.3		ByVigar.
+*!*	+Receptor {CFDPersona}
 *!*	+Conceptos {CFDConceptos}
 *!*	-Serie
 *!*	-Certificado 
-*!*	-CondicionesDePago	&& Se sustituye condicionesDePago por CondicionesDePago 	Requerido en v.3.3		ByVigar.
+*!*	-condicionesDePago 
 *!*	-Descuento 
 *!*	-motivoDescuento 
-*!*	-MetodoPago 		&& Se sustituye MetodoPago por MetodoPago 				Requerido en v.3.3		ByVigar.
+*!*	-metodoDePago 
 *!*	+Impuestos {CFDImpuestos}
 *!*	-Addenda {ICFDAddenda}
 *!*	=cadenaOriginal [2]
@@ -327,12 +329,11 @@
 
 *!*	CFDPersona {Custom}
 *!*	===================
-*!*	+Rfc		&& Se sustituye rfc por Rfc 				Requerido en v.3.3		ByVigar.
+*!*	+RFC
 *!*	+Nombre
 *!*	+domicilioFiscal {CFDDireccion}  [3]
 *!*	-expedidoEn {CFDDireccion} [4]
 *!* -RegimenFiscal {CFDRegimenFiscalCollection} [5]
-*!*	-UsoCFDI	&& Solo para receptor	Obligatorio		v.3.3	ByVigar.
 
 *!*	[3] En el caso del receptor, este atributo se utiliza para el atributo "Domicilio" en el XML
 *!*	[4] En el caso del receptor, este atrbuto no es tomado en cuenta
@@ -351,16 +352,6 @@
 *!*	-Colonia
 *!*	-Localidad
 *!*	-Referencia
-
-							&& Nuevo y Obligatorio en Timbrado de "Pagos"
-*!*	CFDIRelacionados {Custom}
-*!*	=====================
-*!*	=TipoRelacion
-
-
-*!*	CFDIRelacionado {CFDICollection}
-*!*	==============================
-*!*	@Add(UUID, CUUID) = {CfdiRelacionado}
 
 
 *!*	CFDConceptos {CFDCollection}
@@ -404,8 +395,8 @@
 
 *!*	CFDImpuestos {Custom}
 *!*	=====================
-*!*	=TotalImpuestosRetenidos
-*!*	=TotalImpuestosTrasladados
+*!*	=totalImpuestosRetenidos
+*!*	=totalImpuestosTrasladados
 *!*	-Retenciones {CFDRetenciones}
 *!*	-Traslados {CFDTraslados}
 
@@ -580,10 +571,6 @@
 *   configuraciones generales de uso en varios de 
 *   los metodos y funciones de la libreria
 *
-*   VES Dic 30, 2011
-*   Se aprovecha para declarar algunas enumeraciones de
-*   uso en la clase
-*
 PROCEDURE CFDInit
  *
  PUBLIC CFDVersions,CFDConf
@@ -612,28 +599,16 @@ ENDPROC
 *
 DEFINE CLASS CFDVersionsEnum AS Custom
  *
- CFD_20 = 2
- CFD_22 = 22
- CFDi_30 = 3
  CFDi_32 = 32
- CFDi_33 = 33		&& Versión 3.3		ByVigar.
- validVersionList = "[2][22][3][32][33]"
+ CFDi_33 = 33
+ validVersionList = "[32][33]"
 
  PROCEDURE ToString(pnVersion)
   DO CASE
-     CASE pnVersion = THIS.CFD_20
-          RETURN "2.0"
-          
-     CASE pnVersion = THIS.CFD_22
-          RETURN "2.2"
-          
-     CASE pnVersion = THIS.CFDi_30
-          RETURN "3.0"
-          
      CASE pnVersion = THIS.CFDi_32
           RETURN "3.2"
           
-     CASE pnVersion = THIS.CFDi_33				&& Versión 3.3		ByVigar.
+     CASE pnVersion = THIS.CFDi_33
           RETURN "3.3"
           
      OTHERWISE
@@ -643,20 +618,11 @@ DEFINE CLASS CFDVersionsEnum AS Custom
 
  PROCEDURE FromString(pcVersion)
   DO CASE
-     CASE pcVersion = "2.0"
-          RETURN THIS.CFD_20
-          
-     CASE pcVersion = "2.2"
-          RETURN THIS.CFD_22
-
-     CASE pcVersion = "3.0"
-          RETURN THIS.CFDi_30
-
      CASE pcVersion = "3.2"
           RETURN THIS.CFDi_32
-          
+
      CASE pcVersion = "3.3"
-          RETURN THIS.CFDi_33					&& Versión 3.3		ByVigar.
+          RETURN THIS.CFDi_33
           
      OTHERWISE
           RETURN 0
@@ -665,19 +631,10 @@ DEFINE CLASS CFDVersionsEnum AS Custom
  
  PROCEDURE ToLongString(pcVersion)
   DO CASE
-     CASE pcVersion = THIS.CFD_20
-          RETURN "CFD 2.0"
-          
-     CASE pcVersion = THIS.CFD_22
-          RETURN "CFD 2.2"
-          
-     CASE pcVersion = THIS.CFDi_30
-          RETURN "CFDi 3.0"
-          
      CASE pcVersion = THIS.CFDi_32
           RETURN "CFDi 3.2"
           
-     CASE pcVersion = THIS.CFDi_33				&& Versión 3.3		ByVigar.
+     CASE pcVersion = THIS.CFDi_33
           RETURN "CFDi 3.3"
           
      OTHERWISE
@@ -709,7 +666,7 @@ ENDDEFINE
 *
 DEFINE CLASS CFDConf AS Custom
  *
- Version = "3.7"
+ Version = "4"
  OpenSSL = ""
  SMTPServer = ""
  SMTPPort = ""
@@ -720,7 +677,7 @@ DEFINE CLASS CFDConf AS Custom
  MailSender = ""
  UltimoError = ""
  modoPruebas = .F.
- metodoDigest = "md5"
+ metodoDigest = "sha1"
  ubicacionRepositorio = ".\CFD"
  ultimoCertificado = NULL
  formatoImpresion = "CFD.FRX"
@@ -756,52 +713,41 @@ DEFINE CLASS CFDComprobante AS Custom
  *
  *-- Atributos requeridos
  * 
- *   ARC Dic 20, 2011: Se agregan las nuevas versiones
- *
- Version = ""  && VES Dic 30, 2011: Se elimino el valor por omision para establecerlo en el constructor
- Folio = 0					&& Versión 3.3		ByVigar.
- Fecha = {}					&& Versión 3.3		ByVigar.
- Sello = ""					&& Versión 3.3		ByVigar.
- FormaPago = ""				&& Versión 3.3		ByVigar.	se cambio de formadePago a FormaPago
- noAprobacion = 0
- anoAprobacion = 0
- NoCertificado = ""			&& Versión 3.3		ByVigar.
- SubTotal = 0.00
+ Version = "" 
+ Certificado = "" 
+ noCertificado = ""
+ Sello = ""
+ Fecha = {}
+ tipoDeComprobante = ""
+ LugarExpedicion = NULL
+ Moneda = NULL
+ subTotal = 0.00
  Total = 0.00
- TipoDeComprobante = ""		&& Se sustituye tipoDeComprobante por TipoDeComprobante	 	Requerido en v.3.3		ByVigar.
+ 
+ *-- Atributos opcionales
+ Folio = 0
+ Serie = ""
+  
+ * -- Atributos opcionales condicionales
+ condicionesDePago = ""
+ confirmacion = ""
+ Descuento = 0.00
+ formaPago = "01"  && antes metodoDePago, sale de catálogo. 01 - Efectivo
+ metodoPago = "PUE"  && antes formaDePago, sale de catálogo. PUE - Pago en una sola exhibición
+ TipoCambio = NULL
+ 
+ * -- Nodos
  Emisor = NULL
  Receptor = NULL
  Conceptos = NULL
-  
- 
- *-- Atributos opcionales
- Serie = "" 
- Certificado = "" 
- CondicionesDePago = "" 
- Descuento = 0.00
- motivoDescuento = ""
- Impuestos = NULL
- Addenda = NULL
- CfdiRelacionados = NULL		&& Pagos UUDI Relacionados	v.3.3	ByVigar
- 
+ Impuestos = NULL 
+ Complemento = NULL
+ Addenda = NULL 
+ CfdiRelacionados = NULL
 
- *-- Atributos CFD 2.2 y CFDI 3.2 opcionales 
- MontoFolioFiscalOrig = NULL
- FechaFolioFiscalOrig = {}
- SerieFolioFiscalOrig = NULL
- FolioFiscalOrig = NULL
- NumCtaPago = NULL 
- Moneda = NULL
- TipoCambio = NULL
- 
- *-- Atributos CFD 2.2 y CFDI 3.2 requeridos 
- LugarExpedicion = NULL
- MetodoPago = ""  && ARC Dic 20, 2011: es requerido en CFD 2.2 y CFDI 3.2
- 
  *-- Propiedades
  cadenaOriginal = ""   && Solo-lectura
  ubicacionOpenSSL = ".\SSL"
-  
  
  *-- Getters / Setters
  PROCEDURE cadenaOriginal_Access
@@ -813,8 +759,6 @@ DEFINE CLASS CFDComprobante AS Custom
  
  *-- Constructor de la clase
  *   
- *   VES Dic 30, 2011: Se incluyo el parametro opcional pnVersion
- *
  PROCEDURE Init(pnVersion)
   *
   IF PCOUNT() = 0   && Si no se indico una version, se asume la version indicada en CFDConf.XMLVersion
@@ -824,9 +768,7 @@ DEFINE CLASS CFDComprobante AS Custom
   THIS.Version = pnVersion
   THIS.Emisor = CREATEOBJECT("CFDPersona")
   THIS.Receptor = CREATEOBJECT("CFDPersona")
-  THIS.CfdiRelacionados = CREATEOBJECT("CfdiRelacionados")
   THIS.Conceptos = CREATEOBJECT("CFDConceptos")
-  THIS.Impuestos = CREATEOBJECT("CFDImpuestos")
   THIS.ubicacionOpenSSL = CFDConf.OpenSSL
   *
  ENDPROC
@@ -848,11 +790,7 @@ DEFINE CLASS CFDComprobante AS Custom
  *-- Metodos
  
  *-- _genCadenaOriginal (Metodo)
- *   Genera la cadena original que sirve de base para generar el sello digital. El codigo original
- *   pertenece al amigo Halcon Divino, y fue adaptado para el uso dentro de esta clase.
- *
- *   VES Ene 4, 2011
- *   Se cambio el codigo para obtener la cadena original directametne del XML aplicando el archivo
+ *   Genera la cadena original que sirve de base para generar el sello digital aplicando el archivo
  *   XSLT proporcionado por el SAT. De esta forma nos garantizamos que no haya diferencia entre
  *   la cadena original generada por la clase y la que genera el SAT a partir del XML, lo cual 
  *   elimina los problemas de sellado por diferencia en la cadena original.
@@ -861,9 +799,8 @@ DEFINE CLASS CFDComprobante AS Custom
   *
   LOCAL cTempFile
   cTempFile = GetTempFile("XML")
-  
   THIS.CrearXML(cTempFile)
-
+  
   LOCAL cStr
   cStr = CFDExtraerCadenaOriginal(cTempFile)
   
@@ -895,7 +832,7 @@ DEFINE CLASS CFDComprobante AS Custom
  *
  *   Adicionalmente se incluyo codigo para permitir que la funcion reciba cualquier tipo
  *   de datos, haciendo la conversion adecuada segun el tipo. En los casos donde el parametro
- *   de entraada no sea un string, no se realiza la verificacion de caracteres invalidos
+ *   de entrada no sea un string, no se realiza la verificacion de caracteres invalidos
  *
  HIDDEN PROCEDURE _fixStr(puValue, pcSep)
   *
@@ -956,13 +893,10 @@ DEFINE CLASS CFDComprobante AS Custom
   *
   CFDConf.ultimoError = ""
 
-  *-- Si la fecha del comprobante es igual o posterior al 1-1-2011, se cambia
-  *   el metodo MD5 por SHA-256
-  *
   LOCAL cMetodo
-  cMetodo = "md5"
-  IF YEAR(THIS.fecha) > 2010 
-   cMetodo = "sha256"
+  cMetodo = "sha1"
+  IF THIS.Version = "3.3"
+   cMetodo = "sha2"
   ENDIF
   CFDConf.metodoDigest = cMetodo
   
@@ -974,6 +908,7 @@ DEFINE CLASS CFDComprobante AS Custom
    CFDConf.ultimoError = "No se pudo obtener la cadena original. Utilize CFDProbarOpenSSL() para verificar el funcionamiento de la libreria OpenSSL"
    RETURN .F.
   ENDIF
+  
   
   *-- Se genera el sello para la cadena original
   *
@@ -1037,169 +972,131 @@ DEFINE CLASS CFDComprobante AS Custom
    
    *-- Nodo "Comprobante"
    .XML.addNode("Comprobante")
-   IF INLIST(nVersion, CFDVersions.CFDi_32, CFDVersions.CFDi_33)		&& Versión 3.3		ByVigar.
+   IF INLIST(nVersion, CFDVersions.CFDi_32, CFDVersions.CFDi_33)
     .XML._Comprobante.NameSpace = "cfdi"  && Al anadir el NS "Cfdi" al nodo comprobante, todos los subnodos lo heredaran automaticamente
    ENDIF
    WITH .XML._Comprobante
     DO CASE 
-      CASE nVersion = CFDVersions.CFD_20
-    	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
-    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
-   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv2.xsd")
-   		
-      CASE nVersion = CFDVersions.CFDi_30
-   		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
-    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
-   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv3.xsd")
-   		
-   	  CASE nVersion = CFDVersions.CFD_22
-    	.addProp("xmlns","http://www.sat.gob.mx/cfd/2")
-    	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
-   		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/2 http://www.sat.gob.mx/sitio_internet/cfd/2/cfdv22.xsd")
-   		
       CASE nVersion = CFDVersions.CFDi_32
    		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd")
-      CASE nVersion = CFDVersions.CFDi_33					&& Versión 3.3		ByVigar.
+   	
+   	  CASE nVersion = CFDVersions.CFDi_33
    		.addProp("xmlns:cfdi","http://www.sat.gob.mx/cfd/3")
     	.addProp("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")
    		.addProp("xsi:schemaLocation","http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd")
-   		IF THIS.TipoDeComprobante='P'
-	    	.addProp("xmlns:pago10","http://www.sat.gob.mx/Pagos")
-	    	.addProp("xmlns:xs","http://www.w3.org/2001/XMLSchema")
-   		ENDIF
-   	ENDCASE
-    .addProp("Version",THIS._fixStr(THIS.version))
-    .addProp("Serie",THIS._fixStr(THIS.serie),CFD_OPCIONAL)
-    .addProp("Folio",THIS._fixStr(STR(THIS.folio,10,0)))
-    .addProp("Fecha",THIS._fixStr(THIS.fecha))
-    IF INLIST(nVersion, CFDVersions.CFD_20, CFDVersions.CFD_22)
-	    .addProp("noAprobacion",THIS._fixStr(STR(THIS.noAprobacion,10,0)))
-    	.addProp("anoAprobacion",THIS._fixStr(STR(THIS.anoAprobacion,10,0)))
-    ENDIF 
-    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32, CFDVErsions.CFDi_33)
-    	.addProp("Moneda",THIS._fixStr(THIS.Moneda),CFD_OPCIONAL)
-    	.addProp("TipoCambio",THIS._fixStr(THIS.TipoCambio),CFD_OPCIONAL)
-    ENDIF
-    IF INLIST(nVersion, CFDVersions.CFDi_33)
+   	ENDCASE  
+    .addProp("version",THIS._fixStr(THIS.version))
+    .addProp("serie",THIS._fixStr(THIS.serie),CFD_OPCIONAL)
+    .addProp("folio",THIS._fixStr(STR(THIS.folio,10,0)),CFD_OPCIONAL)
+    .addProp("fecha",THIS._fixStr(THIS.fecha)) 
+    IF INLIST(nVersion, CFDVersions.CFDi_32, CFDVErsions.CFDi_33)
+    	.addProp("Moneda",THIS._fixStr(THIS.moneda))
+    	.addProp("TipoCambio",THIS._fixStr(THIS.tipocambio),CFD_OPCIONAL)
+    ENDIF  
+    IF INLIST(nVersion, CFDVersions.CFDi_32)
     	.addProp("MontoFolioFiscalOrig",THIS._fixStr(THIS.MontoFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FechaFolioFiscalOrig",THIS._fixStr(THIS.FechaFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("SerieFolioFiscalOrig",THIS._fixStr(THIS.SerieFolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("FolioFiscalOrig",THIS._fixStr(THIS.FolioFiscalOrig),CFD_OPCIONAL)
     	.addProp("NumCtaPago",THIS._fixStr(THIS.NumCtaPago),CFD_OPCIONAL)
     	.addProp("LugarExpedicion",THIS._fixStr(THIS.LugarExpedicion))
+    	.addProp("metodoDePago",THIS._fixStr(THIS.metodoDePago),CFD_OPCIONAL)
+    	.addProp("formaDePago",THIS._fixStr(THIS.formaDePago))
     ENDIF 
-   	.addProp("MetodoPago",THIS._fixStr(THIS.MetodoPago),CFD_OPCIONAL)
-   	IF THIS.TipoDeComprobante='I'	&& Versión 3.3		ByVigar. no para tipo 'P' Pago10
-    	.addProp("FormaPago",THIS._fixStr(THIS.FormaPago))		&& Versión 3.3		ByVigar.
-    ENDIF
+   	
+    
     *.addProp("",THIS._fixStr(THIS.))
-    .addProp("CondicionesDePago",THIS._fixStr(THIS.CondicionesDePago),CFD_OPCIONAL)
-	
-	IF THIS.TipoDeComprobante='I'		&& ByVigar	v.3.3
-    	.addProp("SubTotal",THIS._fixStr(STR(THIS.SubTotal,15,2)))
-    ELSE
-    	.addProp("SubTotal",THIS._fixStr('0'))
-    ENDIF
-    
-    IF m.imp_dscnt <> 0	&& No debe de aparecer si es 0    V.3.3	ByVigar
-    	.addProp("Descuento",THIS._fixStr(TRANSFORM(THIS.Descuento,"@Z 999999999999.99")))
-    	.addProp("motivoDescuento",THIS._fixStr(THIS.motivoDescuento),CFD_OPCIONAL)
-    ENDIF
-	
-	IF THIS.TipoDeComprobante='I'		&& ByVigar	v.3.3
-    	.addProp("Total",THIS._fixStr(STR(THIS.Total,15,2)))
-    ELSE
-    	.addProp("Total",THIS._fixStr('0'))
-    ENDIF
-    
-    .addProp("TipoDeComprobante",THIS._fixStr(THIS.TipoDeComprobante))
-    .addProp("NoCertificado",THIS.noCertificado)
-    .addProp("Certificado",THIS.Certificado)							&& Versión 3.3		ByVigar.
-    .addProp("Sello",THIS.sello)
+    .addProp("condicionesDePago",THIS._fixStr(THIS.condicionesDePago),CFD_OPCIONAL)
+    .addProp("subTotal",THIS._fixStr(STR(THIS.subTotal,15,2)))
+    .addProp("descuento",THIS._fixStr(TRANSFORM(THIS.Descuento,"@Z 999999999999.99")),CFD_OPCIONAL)
+    .addProp("motivoDescuento",THIS._fixStr(THIS.motivoDescuento),CFD_OPCIONAL)
+    .addProp("total",THIS._fixStr(STR(THIS.total,15,2)))
+    .addProp("tipoDeComprobante",THIS._fixStr(THIS.tipoDeComprobante))
+    .addProp("noCertificado",THIS.noCertificado)
+    .addProp("certificado",THIS.Certificado)
+    .addProp("sello",THIS.sello)
    ENDWITH
   
    *-- Nodo "Emisor"
    .XML._Comprobante.addNode("Emisor")
    WITH .XML._Comprobante._Emisor
-    	.addProp("Rfc",CHRT(THIS._fixStr(THIS.Emisor.Rfc),".- ",""))  && VES Nov 16, 2011
-    	.addProp("RegimenFiscal",THIS._fixStr(THIS.Emisor.RegimenFiscal))  && ByVigar	v.3.3	16/09/2017
-	    IF INLIST(nVersion, CFDVersions.CFD_20, CFDVersions.CFDi_30)  && ARC Ene 03, 2012: Nombre de Emisor opcional en 2.2 y 3.2
-    	  .addProp("Nombre",THIS._fixStr(THIS.Emisor.Nombre))
-	    ELSE 
-    	  IF NOT EMPTY(THIS.Emisor.Nombre)
-        	.addProp("Nombre",THIS._fixStr(THIS.Emisor.Nombre))
-	      ENDIF 
-    	ENDIF 
-    	
-	    IF NOT EMPTY(THIS.Emisor.domicilioFiscal.Pais) && ARC Dic 27, 2011: domiciolio del emisor es opcional en 2.2 y 3.2
-    	  .addNode("DomicilioFiscal")
-	      WITH ._DomicilioFiscal
-    	   .addProp("calle",THIS._fixStr(THIS.Emisor.DomicilioFiscal.Calle))
-	       .addProp("noExterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
-    	   .addProp("noInterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
-	       .addProp("colonia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.colonia),CFD_OPCIONAL)
-    	   .addProp("localidad",THIS._fixStr(THIS.Emisor.DomicilioFiscal.localidad),CFD_OPCIONAL)
-	       .addProp("referencia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.referencia),CFD_OPCIONAL)
-    	   .addProp("municipio",THIS._fixStr(THIS.Emisor.DomicilioFiscal.municipio))
-	       .addProp("estado",THIS._fixStr(THIS.Emisor.DomicilioFiscal.estado))
-    	   .addProp("pais",THIS._fixStr(THIS.Emisor.DomicilioFiscal.pais))
-	       .addProp("CodigoPostal",THIS._fixStr(THIS.Emisor.DomicilioFiscal.CodigoPostal))
-    	  ENDWITH
-	    ENDIF 
-	
-    	IF NOT EMPTY(THIS.Emisor.ExpedidoEn.Pais) && ARC Dic 27, 2011: Ya que Pais es el unico atributo requerido
-	     .addNode("ExpedidoEn")
-    	 	WITH ._ExpedidoEn
-*!*	      		.addProp("calle",THIS._fixStr(THIS.Emisor.ExpedidoEn.Calle))
-*!*	      		.addProp("noExterior",THIS._fixStr(THIS.Emisor.ExpedidoEn.noExterior),CFD_OPCIONAL)
-*!*	     		.addProp("noInterior",THIS._fixStr(THIS.Emisor.ExpedidoEn.noInterior),CFD_OPCIONAL)
-*!*	      		.addProp("colonia",THIS._fixStr(THIS.Emisor.ExpedidoEn.colonia),CFD_OPCIONAL)
-*!*	      		.addProp("localidad",THIS._fixStr(THIS.Emisor.ExpedidoEn.localidad),CFD_OPCIONAL)
-*!*	      		.addProp("referencia",THIS._fixStr(THIS.Emisor.ExpedidoEn.referencia),CFD_OPCIONAL)
-*!*	      		.addProp("municipio",THIS._fixStr(THIS.Emisor.ExpedidoEn.municipio))
-*!*	      		.addProp("estado",THIS._fixStr(THIS.Emisor.ExpedidoEn.estado))
-*!*	      		.addProp("pais",THIS._fixStr(THIS.Emisor.ExpedidoEn.pais))
-      			.addProp("CodigoPostal",THIS._fixStr(THIS.Emisor.ExpedidoEn.CodigoPostal))
-     		ENDWITH
-    	ENDIF
+    .addProp("rfc",CHRT(THIS._fixStr(THIS.Emisor.rfc),".- ",""))  && VES Nov 16, 2011
+    IF INLIST(nVersion, CFDVersions.CFD_20, CFDVersions.CFDi_30)  && ARC Ene 03, 2012: Nombre de Emisor opcional en 2.2 y 3.2
+      .addProp("nombre",THIS._fixStr(THIS.Emisor.nombre))
+    ELSE 
+      IF NOT EMPTY(THIS.Emisor.nombre)
+        .addProp("nombre",THIS._fixStr(THIS.Emisor.nombre))
+      ENDIF 
+    ENDIF 
     
-*!*	    IF INLIST(nVersion, CFDVersions.CFDi_33)	&& Se integra como propiedad del Emisor.RegimenFiscal	v.3.3	ByVigar
-*!*	      LOCAL nRegimen,oRegimen,oNodoRegimen   && VES Ene 12, 2012
-*!*	      FOR nRegimen = 1 TO THIS.Emisor.RegimenFiscal.Count
-*!*	       oRegimen = THIS.Emisor.RegimenFiscal.Items[nRegimen]
-*!*	       oNodoRegimen = .addNode("RegimenFiscal")
-*!*	       oNodoRegimen.addProp("RegimenFiscal",THIS._fixStr(oRegimen.RegimenFiscal))
-*!*	      ENDFOR
-*!*	    ENDIF 
-	ENDWITH
+    IF NOT EMPTY(THIS.Emisor.domicilioFiscal.Pais) && ARC Dic 27, 2011: domiciolio del emisor es opcional en 2.2 y 3.2
+      .addNode("DomicilioFiscal")
+      WITH ._DomicilioFiscal
+       .addProp("calle",THIS._fixStr(THIS.Emisor.DomicilioFiscal.Calle))
+       .addProp("noExterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
+       .addProp("noInterior",THIS._fixStr(THIS.Emisor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
+       .addProp("colonia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.colonia),CFD_OPCIONAL)
+       .addProp("localidad",THIS._fixStr(THIS.Emisor.DomicilioFiscal.localidad),CFD_OPCIONAL)
+       .addProp("referencia",THIS._fixStr(THIS.Emisor.DomicilioFiscal.referencia),CFD_OPCIONAL)
+       .addProp("municipio",THIS._fixStr(THIS.Emisor.DomicilioFiscal.municipio))
+       .addProp("estado",THIS._fixStr(THIS.Emisor.DomicilioFiscal.estado))
+       .addProp("pais",THIS._fixStr(THIS.Emisor.DomicilioFiscal.pais))
+       .addProp("codigoPostal",THIS._fixStr(THIS.Emisor.DomicilioFiscal.codigoPostal),CFD_OPCIONAL)
+      ENDWITH
+    ENDIF 
+
+    IF NOT EMPTY(THIS.Emisor.ExpedidoEn.Pais) && ARC Dic 27, 2011: Ya que Pais es el unico atributo requerido
+     .addNode("ExpedidoEn")
+     WITH ._ExpedidoEn
+      .addProp("calle",THIS._fixStr(THIS.Emisor.ExpedidoEn.Calle))
+      .addProp("noExterior",THIS._fixStr(THIS.Emisor.ExpedidoEn.noExterior),CFD_OPCIONAL)
+      .addProp("noInterior",THIS._fixStr(THIS.Emisor.ExpedidoEn.noInterior),CFD_OPCIONAL)
+      .addProp("colonia",THIS._fixStr(THIS.Emisor.ExpedidoEn.colonia),CFD_OPCIONAL)
+      .addProp("localidad",THIS._fixStr(THIS.Emisor.ExpedidoEn.localidad),CFD_OPCIONAL)
+      .addProp("referencia",THIS._fixStr(THIS.Emisor.ExpedidoEn.referencia),CFD_OPCIONAL)
+      .addProp("municipio",THIS._fixStr(THIS.Emisor.ExpedidoEn.municipio))
+      .addProp("estado",THIS._fixStr(THIS.Emisor.ExpedidoEn.estado))
+      .addProp("pais",THIS._fixStr(THIS.Emisor.ExpedidoEn.pais))
+      .addProp("codigoPostal",THIS._fixStr(THIS.Emisor.ExpedidoEn.codigoPostal),CFD_OPCIONAL)
+     ENDWITH
+    ENDIF
+    
+    IF INLIST(nVersion, CFDVersions.CFD_22, CFDVersions.CFDi_32)
+      LOCAL nRegimen,oRegimen,oNodoRegimen   && VES Ene 12, 2012
+      FOR nRegimen = 1 TO THIS.Emisor.RegimenFiscal.Count
+       oRegimen = THIS.Emisor.RegimenFiscal.Items[nRegimen]
+       oNodoRegimen = .addNode("RegimenFiscal")
+       oNodoRegimen.addProp("Regimen",THIS._fixStr(oRegimen.Regimen))
+      ENDFOR
+    ENDIF 
+   ENDWITH
    
    
    *-- Nodo "Receptor"
    .XML._Comprobante.addNode("Receptor")
    WITH .XML._Comprobante._Receptor
-    	.addProp("Rfc",CHRT(THIS._fixStr(THIS.Receptor.Rfc),".- ",""))		&& VES Nov 16, 2011
-    	.addProp("UsoCFDI",THIS._fixStr(THIS.Receptor.UsoCFDI))				&& v.3.3	ByVigar.
-    	IF NOT EMPTY(THIS.Receptor.Nombre)   && ARC Ene 03, 2012: Nombre de Receptor es opcional
-      		.addProp("Nombre",THIS._fixStr(THIS.Receptor.Nombre))
-    	ENDIF 
-    	
-    	IF NOT EMPTY(THIS.Receptor.DomicilioFiscal.pais) && ARC Ene 03, 2012: Ya que Pais es el unico atributo requerido
-      		.addNode("Domicilio")  && Es opcional en 3.0, 2.2 y 3.2
-      		WITH ._Domicilio
-       			.addProp("calle",THIS._fixStr(THIS.Receptor.DomicilioFiscal.Calle),CFD_OPCIONAL)
-       			.addProp("noExterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
-       			.addProp("noInterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
-       			.addProp("colonia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.colonia),CFD_OPCIONAL)
-       			.addProp("localidad",THIS._fixStr(THIS.Receptor.DomicilioFiscal.localidad),CFD_OPCIONAL)
-       			.addProp("referencia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.referencia),CFD_OPCIONAL)
-       			.addProp("municipio",THIS._fixStr(THIS.Receptor.DomicilioFiscal.municipio),CFD_OPCIONAL)
-       			.addProp("estado",THIS._fixStr(THIS.Receptor.DomicilioFiscal.estado),CFD_OPCIONAL)
-       			.addProp("pais",THIS._fixStr(THIS.Receptor.DomicilioFiscal.pais))
-       			.addProp("codigoPostal",THIS._fixStr(THIS.Receptor.DomicilioFiscal.codigoPostal),CFD_OPCIONAL)
-     		 ENDWITH
-    	ENDIF 
+    .addProp("rfc",CHRT(THIS._fixStr(THIS.Receptor.rfc),".- ",""))   && VES Nov 16, 2011
+    IF NOT EMPTY(THIS.Receptor.nombre)   && ARC Ene 03, 2012: Nombre de Receptor es opcional
+      .addProp("nombre",THIS._fixStr(THIS.Receptor.nombre))
+    ENDIF 
+    
+    IF NOT EMPTY(THIS.Receptor.DomicilioFiscal.pais) && ARC Ene 03, 2012: Ya que Pais es el unico atributo requerido
+      .addNode("Domicilio")  && Es opcional en 3.0, 2.2 y 3.2
+      WITH ._Domicilio
+       .addProp("calle",THIS._fixStr(THIS.Receptor.DomicilioFiscal.Calle),CFD_OPCIONAL)
+       .addProp("noExterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noExterior),CFD_OPCIONAL)
+       .addProp("noInterior",THIS._fixStr(THIS.Receptor.DomicilioFiscal.noInterior),CFD_OPCIONAL)
+       .addProp("colonia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.colonia),CFD_OPCIONAL)
+       .addProp("localidad",THIS._fixStr(THIS.Receptor.DomicilioFiscal.localidad),CFD_OPCIONAL)
+       .addProp("referencia",THIS._fixStr(THIS.Receptor.DomicilioFiscal.referencia),CFD_OPCIONAL)
+       .addProp("municipio",THIS._fixStr(THIS.Receptor.DomicilioFiscal.municipio),CFD_OPCIONAL)
+       .addProp("estado",THIS._fixStr(THIS.Receptor.DomicilioFiscal.estado),CFD_OPCIONAL)
+       .addProp("pais",THIS._fixStr(THIS.Receptor.DomicilioFiscal.pais))
+       .addProp("codigoPostal",THIS._fixStr(THIS.Receptor.DomicilioFiscal.codigoPostal),CFD_OPCIONAL)
+      ENDWITH
+    ENDIF 
    ENDWITH
    
    
@@ -1219,86 +1116,68 @@ DEFINE CLASS CFDComprobante AS Custom
    *   VES Nov 11, 2011
    *   La nueva propiedad createNodeLinks en la clas XMLNodeClass permite superar este problema
    *
-
-   LOCAL i,oItem,oNodo,oxNodo
+   LOCAL i,oItem,oNodo
    .XML._Comprobante.addNode("Conceptos")
    WITH .XML._Comprobante._Conceptos
-    	.createNodeLinks = .F.   && Nov 11, 2011
-    	FOR i = 1 TO THIS.Conceptos.Count
-     		oItem = THIS.Conceptos.Items(i)
-     		oNodo = .addNode("Concepto")
-    		 WITH oNodo
-      			.addProp("ClaveProdServ",THIS._fixStr(oItem.ClaveProdServ))
-      			.addProp("NoIdentificacion",THIS._fixStr(oItem.NoIdentificacion),CFD_OPCIONAL)	&& Cambio en Orden y de "noIdentificacion" a "NoIdentificacion" v.3.3		ByVigar.
-				IF THIS.TipoDeComprobante='P'
-      				.addProp("Cantidad",THIS._fixStr(oItem.Cantidad))	&& Fijo '1' Cambio de "cantidad" a "Cantidad" para  v.3.3	ByVigar
-				ELSE
-      				.addProp("Cantidad",THIS._fixStr(STR(oItem.Cantidad,10,2)))						&& Cambio de "cantidad" a "Cantidad" para  v.3.3	ByVigar.
-      			ENDIF
-      			.addProp("ClaveUnidad",THIS._fixStr(oItem.ClaveUnidad))							&& Nuevo y Obligatorio v.3.3	ByVigar.
-      			.addProp("Unidad",THIS._fixStr(oItem.Unidad),CFD_OPCIONAL)						&& Sigue Opcional y Cambio de "unidad" a "Unidad" para  v.3.3	ByVigar.
-      			.addProp("Descripcion",THIS._fixStr(oItem.Descripcion))							&& Cambio de "descripcion" a "Descripcion" para  v.3.3	ByVigar.
-				IF THIS.TipoDeComprobante='P'
-      				.addProp("ValorUnitario",THIS._fixStr(oItem.ValorUnitario))	&& Fijo '0' Cambio de "valorUnitario" a "ValorUnitario" para  v.3.3	ByVigar.
-      				.addProp("Importe",THIS._fixStr(oItem.Importe))				&& Fijo '0' Cambio de "importe" a "Importe" para  v.3.3	ByVigar.
-				ELSE
-      				.addProp("ValorUnitario",THIS._fixStr(STR(oItem.ValorUnitario,15,2)))				&& Cambio de "valorUnitario" a "ValorUnitario" para  v.3.3	ByVigar.
-      				.addProp("Importe",THIS._fixStr(STR(oItem.Importe,15,2)))							&& Cambio de "importe" a "Importe" para  v.3.3	ByVigar.
-				ENDIF
-				
-				IF THIS.TipoDeComprobante='I'
-	     			oNodo = .addNode("Impuestos")
-		    		WITH oNodo
-    		 			oNodo = .addNode("Traslados")
-     					WITH oNodo
-      						.createNodeLinks = .F.  && Nov 11, 2011
-       							oNodo = .addNode("Traslado")
-       							oNodo.addProp("Base",THIS._fixStr(STR(oItem.Base,15,2)))
-	       						oNodo.addProp("Impuesto",THIS._fixStr(oItem.Impuesto))
-    	   						oNodo.addProp("TipoFactor",THIS._fixStr(oItem.TipoFactor))
-	       						oNodo.addProp("TasaOCuota",THIS._fixStr(STR((oItem.TasaOCuota/100),10,6)))      	&& Nuevo u obligatorio v.3.3	ByVigar.
-    	   						oNodo.addProp("Importe",THIS._fixStr(STR(oItem.Iimporte,15,2)))
-     					ENDWITH
-     				ENDWITH
-    			ENDIF
-    			
-    			
-				      
-				
-								
-      			IF !EMPTY(oItem.CuentaPredial.Numero)
-       				.addNode("CuentaPredial")
-      				 WITH .Nodes[1]  && ARC Feb 2, 2014
-        				.addProp("numero",THIS._fixStr(oItem.CuentaPredial.numero))
-       				ENDWITH
-      			ENDIF
+    .createNodeLinks = .F.   && Nov 11, 2011
+    FOR i = 1 TO THIS.Conceptos.Count
+     oItem = THIS.Conceptos.Items(i)
+     oNodo = .addNode("Concepto")
+     WITH oNodo
+      .addProp("cantidad",THIS._fixStr(STR(oItem.cantidad)))
+      .addProp("unidad",THIS._fixStr(oItem.unidad),CFD_OPCIONAL)
+      .addProp("noIdentificacion",THIS._fixStr(oItem.noIdentificacion),CFD_OPCIONAL)
+      .addProp("descripcion",THIS._fixStr(oItem.descripcion))
+      .addProp("valorUnitario",THIS._fixStr(STR(oItem.valorUnitario,15,2)))
+      .addProp("importe",THIS._fixStr(STR(oItem.Importe,15,2)))
+      
+      IF !EMPTY(oItem.informacionAduanera.Numero)
+       .addNode("InformacionAduanera")
+       WITH .Nodes[1]  && VES Nov 11, 2011
+        .addProp("numero",THIS._fixStr(oItem.informacionAduanera.numero))
+        .addProp("fecha",THIS._fixStr(oItem.informacionAduanera.fecha))        
+        * VES Ago 23, 2012
+        * Se incluye la propiedad Aduana solo si la misma no esta vacia
+        IF !EMPTY(oItem.informacionAduanera.aduana)
+         .addProp("aduana",THIS._fixStr(oItem.informacionAduanera.aduana))        
+        ENDIF
+       ENDWITH
+      ENDIF
+
+      IF !EMPTY(oItem.CuentaPredial.Numero)
+       .addNode("CuentaPredial")
+       WITH .Nodes[1]  && ARC Feb 2, 2014
+        .addProp("numero",THIS._fixStr(oItem.CuentaPredial.numero))
+       ENDWITH
+      ENDIF
      
-     			
-      			*-- VES Ene 12, 2012: Si el concepto contiene un complemento, se inserta como si
-      			*   fuera una addenda en el concepto
-      			IF !ISNULL(oItem.Complemento) AND LOWER(oItem.Complemento.ParentClass) == "icfdaddenda"
-       				oNodo = .addNode("ComplementoConcepto")
-       				oNodo.Data = oItem.Complemento.ToString() 
-       				IF !EMPTY(oItem.Complemento.NSTag)
-        				* VES Ago 3, 2012: Se valida que no se haya declarado el Namespace anteriormente, antes
-        				* de anadir su declaracion en las propiedades del nodo Comprobante 
-        				IF NOT oParser.XML._Comprobante.isProp("xmlns:" + oItem.Complemento.NSTag)
-         					oParser.XML._Comprobante.addProp("xmlns:" + oItem.Complemento.NSTag, oItem.Complemento.NSUrl)
-       					 ENDIF
-       				ENDIF
-       				IF !EMPTY(oItem.Complemento.schemaLocation)
-        				WITH oParser.XML._Comprobante.Props["xsi:schemaLocation"]
-         					.Value = .Value + SPACE(1) + oItem.Complemento.schemaLocation
-        				ENDWITH
-       				ENDIF
-      			ENDIF 
-     		ENDWITH
-    	ENDFOR
-   	ENDWITH
+     
+      *-- VES Ene 12, 2012: Si el concepto contiene un complemento, se inserta como si
+      *   fuera una addenda en el concepto
+      IF !ISNULL(oItem.Complemento) AND LOWER(oItem.Complemento.ParentClass) == "icfdaddenda"
+       oNodo = .addNode("ComplementoConcepto")
+       oNodo.Data = oItem.Complemento.ToString() 
+       IF !EMPTY(oItem.Complemento.NSTag)
+        * VES Ago 3, 2012: Se valida que no se haya declarado el Namespace anteriormente, antes
+        * de anadir su declaracion en las propiedades del nodo Comprobante 
+        IF NOT oParser.XML._Comprobante.isProp("xmlns:" + oItem.Complemento.NSTag)
+         oParser.XML._Comprobante.addProp("xmlns:" + oItem.Complemento.NSTag, oItem.Complemento.NSUrl)
+        ENDIF
+       ENDIF
+       IF !EMPTY(oItem.Complemento.schemaLocation)
+        WITH oParser.XML._Comprobante.Props["xsi:schemaLocation"]
+         .Value = .Value + SPACE(1) + oItem.Complemento.schemaLocation
+        ENDWITH
+       ENDIF
+      ENDIF 
+     
+      
+     ENDWITH
+    ENDFOR
+   ENDWITH
    
    
-   IF THIS.TipoDeComprobante='I'
-   *-- Nodo "Impuestos"'
+   *-- Nodo "Impuestos"
    *
    *   Tanto para los subnodos de Retenciones como de Impuestos se aplico la misma tecnica de enumeracion
    *   aplicada con los subnodos de Conceptos
@@ -1306,43 +1185,40 @@ DEFINE CLASS CFDComprobante AS Custom
    *   VES Nov 11, 2011
    *   Se aplica la nueva propiedad createNodeLinks para evitar este problema
    *
- 
    .XML._Comprobante.addNode("Impuestos")
    WITH .XML._Comprobante._Impuestos
-    	IF THIS.Impuestos.Retenciones.Count > 0
-     		.addProp("TotalImpuestosRetenidos",THIS._fixStr(STR(THIS.Impuestos.TotalImpuestosRetenidos,15,2)))
-     		.addNode("Retenciones")
-     		WITH ._Retenciones
-     			.createNodeLinks = .F.   && Nov 11, 2011     
-      			FOR i = 1 TO THIS.Impuestos.Retenciones.Count
-       				oItem = THIS.Impuestos.Retenciones.Items(i)
-       				oNodo = .addNode("Retencion")
-       				oNodo.addProp("Impuesto",THIS._fixStr(oItem.Impuesto))					&& 002 IVA	v.3.3	ByVigar
-       				oNodo.addProp("Importe",THIS._fixStr(STR(oItem.Importe,15,2)))
-     			 ENDFOR
-     		ENDWITH
-    	ENDIF
-    	
-    	IF THIS.Impuestos.Traslados.Count > 0
-     		.addProp("TotalImpuestosTrasladados",THIS._fixStr(STR(THIS.Impuestos.TotalImpuestosTrasladados,15,2)))
-     		.addNode("Traslados")
-    		 WITH ._Traslados
-      			.createNodeLinks = .F.  && Nov 11, 2011
-      			FOR i = 1 TO THIS.Impuestos.Traslados.Count
-       				oItem = THIS.Impuestos.Traslados.Items(i)
-       				oNodo = .addNode("Traslado")
-       				oNodo.addProp("Impuesto",THIS._fixStr(oItem.Impuesto))
-       				oNodo.addProp("TipoFactor",THIS._fixStr(oItem.TipoFactor))
-       				oNodo.addProp("TasaOCuota",THIS._fixStr(STR((oItem.TasaOCuota/100),10,6)))      	&& Nuevo u obligatorio v.3.3	ByVigar.
-       				oNodo.addProp("Importe",THIS._fixStr(STR(oItem.Importe,15,2)))
-      			ENDFOR
-     		ENDWITH
-    	ENDIF
-	ENDWITH
-	ENDIF
-	
-	
-	
+    IF THIS.Impuestos.Retenciones.Count > 0
+     .addProp("totalImpuestosRetenidos",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosRetenidos,15,2)))
+     .addNode("Retenciones")
+     WITH ._Retenciones
+     .createNodeLinks = .F.   && Nov 11, 2011     
+      FOR i = 1 TO THIS.Impuestos.Retenciones.Count
+       oItem = THIS.Impuestos.Retenciones.Items(i)
+       oNodo = .addNode("Retencion")
+       oNodo.addProp("impuesto",THIS._fixStr(oItem.Impuesto))
+       oNodo.addProp("importe",THIS._fixStr(STR(oItem.Importe,15,2)))
+      ENDFOR
+     ENDWITH
+    ENDIF
+    
+    IF THIS.Impuestos.Traslados.Count > 0
+     .addProp("totalImpuestosTrasladados",THIS._fixStr(STR(THIS.Impuestos.totalImpuestosTrasladados,15,2))) 
+     .addNode("Traslados")
+     WITH ._Traslados
+      .createNodeLinks = .F.  && Nov 11, 2011
+      FOR i = 1 TO THIS.Impuestos.Traslados.Count
+       oItem = THIS.Impuestos.Traslados.Items(i)
+       oNodo = .addNode("Traslado")
+       oNodo.addProp("impuesto",THIS._fixStr(oItem.Impuesto))
+       oNodo.addProp("tasa",THIS._fixStr(STR(oItem.tasa,6,2)))       
+       oNodo.addProp("importe",THIS._fixStr(STR(oItem.Importe,15,2)))
+      ENDFOR
+     ENDWITH
+    ENDIF
+    
+   ENDWITH
+
+
    * set step on 
    *-- Nodo "Addenda"
    *
@@ -1361,84 +1237,28 @@ DEFINE CLASS CFDComprobante AS Custom
      ENDWITH
     ENDIF
    ENDIF 
-	
-	IF THIS.TipoDeComprobante='P'		&& ByVigar	Foxlatino
-		
-    	.XML._Comprobante.addNode("Complemento")
-    	WITH .XML._Comprobante._Complemento
-     		oNodo = oParser.XML._Comprobante._Complemento.addNode("pago10:Pagos")
-     		WITH oParser.XML._Comprobante._Complemento._Pagos
-     		*WITH oParser.XML._Comprobante._Complemento._pago10._Pagos
-     		
-     		*oNodo = oParser.XML._Comprobante._Complemento.addNode("pago10Pagos")
-     		*WITH oParser.XML._Comprobante._Complemento._pago10Pagos
-     			.addProp('Version',THIS._fixStr('1.0'))
-	     		oNodo = oParser.XML._Comprobante._Complemento._Pagos.addNode("pago10:Pago")
-     			WITH oParser.XML._Comprobante._Complemento._Pagos._Pago
-					oNodo.addProp("FechaPago", THIS._fixStr(xfecpago))
-					oNodo.addProp("FormaDePagoP", THIS._fixStr(xfdpago))
-					oNodo.addProp("MonedaP", THIS._fixStr(xmoneda))
-					*oNodo.addProp("TipoCambioP", THIS._fixStr((STR(TipoCambioP,10,6)),_OPCIONAL))
-					oNodo.addProp("Monto", THIS._fixStr(STR(m.imp_net,15,2)))
-					*oNodo.addProp("NumOperacion", THSI._fixStr(NumOperacion),_OPCIONAL)
-					*oNodo.addProp("RfcEmisorCtaOrd", THIS._fixStr(RfcEmisorCtaOrd),_OPCIONAL)
-					*oNodo.addProp("NomBancoOrdExt", THIS._fixStr(NomBancoOrdExt))
-					*oNodo.addProp("CtaOrdenante", THIS._fixStr(CtaOrdenante),_OPCIONAL)
-					*oNodo.addProp("RfcEmisorCtaBen", THIS._fixStr(RfcEmisorCtaBen),_OPCIONAL)
-					*oNodo.addProp("CtaBeneficiario", THIS._fixStr(CtaBeneficiario),_OPCIONAL)  
-					
-		     		oNodo = oParser.XML._Comprobante._Complemento._Pagos._Pago.addNode("pago10:DoctoRelacionado")
-		      		WITH oParser.XML._Comprobante._Complemento._Pagos._Pago._DoctoRelacionado
-						oNodo.addProp("IdDocumento",this._fixStr(xtimbre))
-						*oNodo.addProp("Serie",this._fixStr(Serie))
-						*oNodo.addProp("Folio",this._fixStr(Folio))
-						oNodo.addProp("MonedaDR",this._fixStr(xmoneda))
-						*oNodo.addProp("TipoCambioDR",this.TipoCambioDR)
-						oNodo.addProp("MetodoDePagoDR",this._fixStr(xmetpago))
-						oNodo.addProp("NumParcialidad",this._fixStr(xnumparc))
-						oNodo.addProp("ImpSaldoAnt",THIS._fixStr(STR(xsdoant,15,2)))
-						oNodo.addProp("ImpPagado",THIS._fixStr(STR(m.imp_net,15,2)))
-						oNodo.addProp("ImpSaldoInsoluto",THIS._fixStr(STR(xinsoluto,15,2)))
-        			ENDWITH
-        			
-        		ENDWITH
-        		
-        	ENDWITH
-        	
-       	ENDWITH
-       	
-	ENDIF
-	
-   IF swfetim
-	IF THIS.TipoDeComprobante<>'P'
-    	.XML._Comprobante.addNode("Complemento")
-    ENDIF
-    WITH .XML._Comprobante._Complemento
-      .addNode("tfd:TimbreFiscalDigital")
-    ENDWITH
-      WITH .XML._Comprobante._Complemento._TimbreFiscalDigital
-	 	.addProp('Version',THIS._fixStr('1.1'))
-		.addProp('xsi:schemaLocation',THIS._fixStr(xtlcencabtfd))
-		.addProp('xmlns:tfd', THIS._fixStr(xtlcpietfd))
-        .addProp("UUID",THIS._fixStr(xtlcfolio))
-        .addProp("RfcProvCertif",THIS._fixStr(xtlrfcprocer))
-        .addProp("FechaTimbrado",THIS._fixStr(xtlcFechaTimbrado))
-        .addProp("SelloCFD",THIS._fixStr(xtlcselloCFD))
-        .addProp("NoCertificadoSAT",THIS._fixStr(xtlccertificadoSAT))
-        .addProp("SelloSAT",THIS._fixStr(xtlcselloSAT))
-       ENDWITH
-   ENDIF
-	
-	
-	
+
+   
+
    *-- Se crea el archivo Xml
    .Save(pcArchivo)
+   
    
    *-- Se carga el Xml en memoria de nuevo para eliminar los tags consecutivos
    *   de los nodos Concepto, Retenciones y Traslados, asi como eliminar los
    *   CRLF
    LOCAL cBuff
    cBuff = FILETOSTR(pcArchivo)
+*!*	   FOR i = 1 TO THIS.Conceptos.Count
+*!*	    cBuff = STRT(cBuff,"<Concepto" + PADL(i,3,"0"),"<Concepto")
+*!*	    cBuff = STRT(cBuff,"</Concepto" + PADL(i,3,"0"),"</Concepto")    
+*!*	   ENDFOR
+*!*	   FOR i = 1 TO THIS.Impuestos.Retenciones.Count
+*!*	    cBuff = STRT(cBuff,"<Retencion" + PADL(i,2,"0"),"<Retencion")
+*!*	   ENDFOR
+*!*	   FOR i = 1 TO THIS.Impuestos.Traslados.Count
+*!*	    cBuff = STRT(cBuff,"<Traslado" + PADL(i,2,"0"),"<Traslado")
+*!*	   ENDFOR
    cBuff = STRT(cBuff, ">" + CHR(13)+CHR(10), ">")
    cBuff = STRT(cBuff, "?>", "?>" + CHR(13) + CHR(10))
    
@@ -1448,6 +1268,34 @@ DEFINE CLASS CFDComprobante AS Custom
    *   VES Nov 11, 2011
    *   Solucionado con la nueva propiedad NameSpace de la clase XMLNodeClass
    *
+*!*	   IF ALLTRIM(THIS.version) = "3.0"
+*!*		cBuff = STRT(cBuff, "<Comprobante", "<cfdi:Comprobante")	   
+*!*			cBuff = STRT(cBuff, "<Emisor", "<cfdi:Emisor")
+*!*				cBuff = STRT(cBuff, "<DomicilioFiscal", "<cfdi:DomicilioFiscal")
+*!*				cBuff = STRT(cBuff, "<ExpedidoEn", "<cfdi:ExpedidoEn")
+*!*			cBuff = STRT(cBuff, "</Emisor>", "</cfdi:Emisor>")
+*!*			cBuff = STRT(cBuff, "<Receptor", "<cfdi:Receptor")
+*!*				cBuff = STRT(cBuff, "<Domicilio", "<cfdi:Domicilio")
+*!*			cBuff = STRT(cBuff, "</Receptor>", "</cfdi:Receptor>")
+*!*			cBuff = STRT(cBuff, "<Conceptos>", "<cfdi:Conceptos>")
+*!*				cBuff = STRT(cBuff, "<Concepto ", "<cfdi:Concepto ")
+*!*					cBuff = STRT(cBuff, "<InformacionAduanera", "<cfdi:InformacionAduanera")
+*!*					cBuff = STRT(cBuff, "<CuentaPredial", "<cfdi:CuentaPredial")
+*!*					cBuff = STRT(cBuff, "<ComplementoConcepto", "<cfdi:ComplementoConcepto")
+*!*					cBuff = STRT(cBuff, "<Parte", "<cfdi:Parte")
+*!*				cBuff = STRT(cBuff, "</Concepto>", "</cfdi:Concepto>")
+*!*			cBuff = STRT(cBuff, "</Conceptos>", "</cfdi:Conceptos>")
+*!*			cBuff = STRT(cBuff, "<Impuestos", "<cfdi:Impuestos")
+*!*				cBuff = STRT(cBuff, "<Retenciones>", "<cfdi:Retenciones>")
+*!*					cBuff = STRT(cBuff, "<Retencion", "<cfdi:Retencion")
+*!*				cBuff = STRT(cBuff, "</Retenciones>", "</cfdi:Retenciones>")
+*!*				cBuff = STRT(cBuff, "<Traslados>", "<cfdi:Traslados>")
+*!*					cBuff = STRT(cBuff, "<Traslado", "<cfdi:Traslado")
+*!*				cBuff = STRT(cBuff, "</Traslados>", "</cfdi:Traslados>")
+*!*			cBuff = STRT(cBuff, "</Impuestos>", "</cfdi:Impuestos>")
+*!*			cBuff = STRT(cBuff, "<Addenda>", "<cfdi:Addenda>")
+*!*		cBuff = STRT(cBuff, "</Comprobante>", "</cfdi:Comprobante>")
+*!*	   ENDIF 
    
    
    *-- Se graba de nuevo el Xml ya en su forma final
@@ -1480,6 +1328,7 @@ DEFINE CLASS CFDComprobante AS Custom
     *
    ENDIF
    
+   
    RETURN .T.
    *
   ENDWITH 
@@ -1491,56 +1340,56 @@ DEFINE CLASS CFDComprobante AS Custom
 ENDDEFINE
 
 
-*!*	*-- CFDRegimenFiscal			&& Se sustituye por Emisor.RegimenFiscal	v.3.3	ByVigar.
-*!*	*   Datos de un regimen fiscal
-*!*	*
-*!*	DEFINE CLASS CFDRegimenFiscal AS Custom
-*!*	 *
-*!*	 RegimenFiscal = ""
-*!*	 *
-*!*	ENDDEFINE
+*-- CFDRegimenFiscal
+*   Datos de un regimen fiscal
+*
+DEFINE CLASS CFDRegimenFiscal AS Custom
+ *
+ Regimen = ""
+ *
+ENDDEFINE
 
 
-*!*	*-- CFDRegimenFiscalCollection (Clase)		&& Se sustituye por Emisor.RegimenFiscal	v.3.3	ByVigar.
-*!*	*   Lista de regimenes fiscales de una persona
-*!*	*
-*!*	DEFINE CLASS CFDRegimenFiscalCollection AS CFDCollection
-*!*	 *
-*!*	 RegimenFiscal = ""   && Regimen por omision
-*!*	 
-*!*	 *-- Regimen (Setter)
-*!*	 PROCEDURE Regimen_Assign(vNewVal)
-*!*	  IF THIS.Count = 0
-*!*	   THIS.Add(m.vNewVal)
-*!*	  ENDIF
-*!*	 ENDPROC
-*!*	 
-*!*	 *-- Regimen (Getter)
-*!*	 PROCEDURE Regimen_Access
-*!*	  IF THIS.Count > 0
-*!*	   RETURN THIS.Items[1].Regimen
-*!*	  ELSE
-*!*	   RETURN ""
-*!*	  ENDIF
-*!*	 ENDPROC
+*-- CFDRegimenFiscalCollection (Clase)
+*   Lista de regimenes fiscales de una persona
+*
+DEFINE CLASS CFDRegimenFiscalCollection AS CFDCollection
+ *
+ Regimen = ""   && Regimen por omision
+ 
+ *-- Regimen (Setter)
+ PROCEDURE Regimen_Assign(vNewVal)
+  IF THIS.Count = 0
+   THIS.Add(m.vNewVal)
+  ENDIF
+ ENDPROC
+ 
+ *-- Regimen (Getter)
+ PROCEDURE Regimen_Access
+  IF THIS.Count > 0
+   RETURN THIS.Items[1].Regimen
+  ELSE
+   RETURN ""
+  ENDIF
+ ENDPROC
  
  
-*!*	 *-- Add (Metodo)
-*!*	 *   Incluye un nuevo elemento en la coleccion
-*!*	 PROCEDURE Add(pcRegimen)
-*!*	  *
-*!*	  LOCAL oItem
-*!*	  oItem = CREATEOBJECT("CFDRegimenFiscal")
-*!*	  WITH oItem
-*!*	   .RegimenFiscal = pcRegimen
-*!*	  ENDWITH
-*!*	  
-*!*	  RETURN DODEFAULT(oItem)
-*!*	  *
-*!*	 ENDPROC
-*!*	 
-*!*	 *
-*!*	ENDDEFINE
+ *-- Add (Metodo)
+ *   Incluye un nuevo elemento en la coleccion
+ PROCEDURE Add(pcRegimen)
+  *
+  LOCAL oItem
+  oItem = CREATEOBJECT("CFDRegimenFiscal")
+  WITH oItem
+   .Regimen = pcRegimen
+  ENDWITH
+  
+  RETURN DODEFAULT(oItem)
+  *
+ ENDPROC
+ 
+ *
+ENDDEFINE
 
 
 
@@ -1551,11 +1400,8 @@ ENDDEFINE
 DEFINE CLASS CFDPersona AS Custom
  *
  *-- Atributos requeridos
- Rfc = ""
- RegimenFiscal=""
- UsoCfdi = ""
-&& Se sustituye por Emisor.RegimenFiscal	v.3.3	ByVigar.
-* RegimenFiscal = NULL	&& ARC Dic 20, 2011: Requerido solo para Emisor
+ RFC = ""
+ RegimenFiscal = NULL	&& ARC Dic 20, 2011: Requerido solo para Emisor
  
  *-- Atributos opcionales
  expedidoEn = NULL
@@ -1565,9 +1411,8 @@ DEFINE CLASS CFDPersona AS Custom
  *-- Contructor de la clase
  PROCEDURE Init
   THIS.domicilioFiscal = CREATEOBJECT("CFDDireccion")
-  THIS.ExpedidoEn = CREATEOBJECT("CFDDireccion")  
-  && Se sustituye por Emisor.RegimenFiscal	v.3.3	ByVigar.
-  *THIS.RegimenFiscal = CREATEOBJECT("CFDRegimenFiscalCollection")
+  THIS.expedidoEn = CREATEOBJECT("CFDDireccion")  
+  THIS.RegimenFiscal = CREATEOBJECT("CFDRegimenFiscalCollection")
  ENDPROC
  *
 ENDDEFINE
@@ -1599,75 +1444,24 @@ ENDDEFINE
 
 
 
-
-*-- CfdiRelacionados (Clase)		Foxlatino	ByVigar.
-*   Representa los datos que relacionan CFDI'S del comprobante
-*
-DEFINE CLASS CfdiRelacionados AS CFDCollection
- *
- *-- Add (Metodo)
- *   Incluye un nuevo elemento en la coleccion.		&& Incluyo 2 Nuevos elementos en la colección	ByVigar.
- *
- PROCEDURE Add(pcUUID)
-  *
-  LOCAL oCfdiRelacionado
-  oCfdiRelacionado = CREATEOBJECT("CfdiRelacionado")
-  WITH oCfdiRelacionado
-   .UUID = pcUUID					&& Nuevo Obligatorio	v.3.3		ByVigar.
-  ENDWITH
-  
-  RETURN DODEFAULT(oCfdiRelacionado)
-  *
- ENDPROC
- *
-ENDDEFINE
- 
-*-- CfdiRelacionado (Clase)
-*   Representa una linea UUID'S Relacionados de un comprobante digital.
-*
-DEFINE CLASS CfdiRelacionado AS Custom
- *
- *-- Atributos requeridos
- UUID = ""
-ENDDEFINE
-
-
-
-
-
 *-- CFDConceptos (Clase)
 *   Representa la lista de conceptos contenidos en el comprobante
 *
 DEFINE CLASS CFDConceptos AS CFDCollection
  *
  *-- Add (Metodo)
- *   Incluye un nuevo elemento en la coleccion.		&& Incluyo 2 Nuevos elementos en la colección	ByVigar.
+ *   Incluye un nuevo elemento en la coleccion
  *
- PROCEDURE Add(pcClaveProdServ, pcNoIdentificacion, pnCantidad, pcClaveUnidad, pcUnidad, pcDescripcion, pnPU, pnImporte, pnDescuento, PnBase, pcImpuesto, pcTipoFactor, pnTasaOCuota, pnIimporte)
+ PROCEDURE Add(pnCantidad, pcDescripcion, pnPU, pnImporte)
   *
   LOCAL oConcepto
   oConcepto = CREATEOBJECT("CFDConcepto")
   WITH oConcepto
-   .ClaveProdServ = pcClaveProdServ			&& Nuevo Obligatorio	v.3.3		ByVigar.
-   .NoIdentificacion = pcNoIdentificacion	&& Nuevo Opcional		v.3.3		ByVigar.
    .Cantidad = pnCantidad
-   .ClaveUnidad = pcClaveUnidad				&& Nuevo Obligatorio	v.3.3		ByVigar.
-   .Unidad = pcUnidad
    .Descripcion = pcDescripcion
-   .ValorUnitario = pnPU
+   .valorUnitario = pnPU
    .Importe = pnImporte
-   .Base = pnBase
-   .Impuesto = pcImpuesto
-   .TipoFactor = pcTipoFactor
-   .TasaOCuota = pnTasaOCuota
-   .Iimporte = pnIimporte
-   IF pnDescuento <> 0
-	   .Descuento = pnDescuento				&& Nuevo Obligatorio	v.3.3		ByVigar.
-   ENDIF
-      
   ENDWITH
-  
-  
   
   RETURN DODEFAULT(oConcepto)
   *
@@ -1683,121 +1477,27 @@ ENDDEFINE
 DEFINE CLASS CFDConcepto AS Custom
  *
  *-- Atributos requeridos
- ClaveProdServ = ''
- NoIdentificacion = ''
  Cantidad = 0.00
- ClaveUnidad = ''
- Unidad = ""
  Descripcion = ""
- ValorUnitario = 0.00
+ valorUnitario = 0.00
  Importe = 0.00
- Descuento = 0.00
- Base = 0.00
- Impuesto = ''
- TipoFactor = ''
- TasaOCuota = 0.00
- Iimporte = 0.00
+ Unidad = ""
+ 
  
  *-- Atributos opcionales
- Impuestos = NULL
+ noIdentificacion = ""
  informacionAduanera = NULL
  cuentaPredial = NULL
  Complemento = NULL   && VES Ene 12, 2012
 
  *-- Constructor de la clase
  PROCEDURE Init
-  THIS.Impuestos = CREATEOBJECT("CFDComplementoImpuestos")
-  THIS.InformacionAduanera = CREATEOBJECT("CFDInformacionAduanera")
-  THIS.CuentaPredial = CREATEOBJECT("CFDCuentaPredial")
+  THIS.informacionAduanera = CREATEOBJECT("CFDInformacionAduanera")
+  THIS.cuentaPredial = CREATEOBJECT("CFDCuentaPredial")
   THIS.Complemento = NULL  && VES Ene 12, 2012
  ENDPROC 
  *
 ENDDEFINE
-
-
-
-*-- CFDComplementoImpuestos (Clase)						v.3.3	ByVigar.
-*   Representa la de los impuestos Trasladados y Retenidos de un concepto especifico
-*
-DEFINE CLASS CFDComplementoImpuestos AS Custom
- *
- *-- Atributos obligatorios
- Traslados = NULL
- Retenciones = NULL
- *
- *-- Constructor de la clase
- PROCEDURE Init
-  THIS.Traslados = CREATEOBJECT('CFDComTraslados')
-  THIS.Retenciones = CREATEOBJECT('CFDComRetenciones')
- ENDPROC 
- 
- ENDDEFINE
-
-
-
-*-- CFDComTraslados (Clase)						v.3.3	ByVigar.
-*   Representa la de los impuestos Trasladados y Retenidos de un concepto especifico
-*
-DEFINE CLASS CFDComTraslados AS Custom
- *
- *-- Atributos obligatorios
- Traslado = NULL
- *
- *-- Constructor de la clase
- PROCEDURE Init
-  THIS.Traslado = CREATEOBJECT('CFDComTraslado')
- ENDPROC 
- 
- ENDDEFINE
-
-
-
-*-- CFDComTraslado (Clase)						v.3.3	ByVigar.
-*   Representa la de los impuestos Trasladados y Retenidos de un concepto especifico
-*
-DEFINE CLASS CFDComTraslado AS Custom
- *
- *-- Atributos obligatorios
- Base = 0.00
- Impuesto = ''
- TipoFactor = ''
- TasaOCuota = 0.00
- Importe = 0.00
- 
- ENDDEFINE
-
-
-
-*-- CFDComRetenciones (Clase)						v.3.3	ByVigar.
-*   Representa la de los impuestos Trasladados y Retenidos de un concepto especifico
-*
-DEFINE CLASS CFDComRetenciones AS Custom
- *
- *-- Atributos obligatorios
- Retencion = NULL
- *
- *-- Constructor de la clase
- PROCEDURE Init
-  THIS.Retencion = CREATEOBJECT('CFDComRetencion')
- ENDPROC 
- 
- ENDDEFINE
-
-
-
-*-- CFDConRetencion (Clase)						v.3.3	ByVigar.
-*   Representa la de los impuestos Trasladados y Retenidos de un concepto especifico
-*
-DEFINE CLASS CFDComRetencion AS Custom
- *
- *-- Atributos obligatorios
- Base = 0.00
- Impuesto = ''
- TipoFactor = ''
- TasaOCuota = 0.00
- Importe = 0.00
- 
- ENDDEFINE
 
 
 
@@ -1841,14 +1541,14 @@ DEFINE CLASS CFDImpuestos AS Custom
   
  
  *-- Atributos opcionales 
- TotalImpuestosRetenidos = 0.00  && Solo lectura
- TotalImpuestosTrasladados = 0.00  && Solo lectura
+ totalImpuestosRetenidos = 0.00  && Solo lectura
+ totalImpuestosTrasladados = 0.00  && Solo lectura
  Retenciones = NULL
  Traslados = NULL
  
  
  *-- Getters / Setters
- PROCEDURE TotalImpuestosRetenidos_Access
+ PROCEDURE totalImpuestosRetenidos_Access
   *
   LOCAL i, nTotal
   nTotal = 0.00
@@ -1859,10 +1559,10 @@ DEFINE CLASS CFDImpuestos AS Custom
   RETURN nTotal
   *
  ENDPROC
- PROCEDURE TotalImpuestosRetenidos_Assign(vNewVal)
+ PROCEDURE totalImpuestosRetenidos_Assign(vNewVal)
  ENDPROC
  
- PROCEDURE TotalImpuestosTrasladados_Access
+ PROCEDURE totalImpuestosTrasladados_Access
   *
   LOCAL i, nTotal
   nTotal = 0.00
@@ -1873,7 +1573,7 @@ DEFINE CLASS CFDImpuestos AS Custom
   RETURN nTotal
   *
  ENDPROC
- PROCEDURE TotalImpuestosTrasladados_Assign(vNewVal)
+ PROCEDURE totalImpuestosTrasladados_Assign(vNewVal)
  ENDPROC
 
  
@@ -1920,14 +1620,13 @@ DEFINE CLASS CFDTraslados AS CFDCollection
  *-- Add (Metodo)
  *   Incluye un nuevo traslado en la lista
  *
- PROCEDURE Add(pcImpuesto, pcTipoFactor, pnTasaOCuota, pnImporte)
+ PROCEDURE Add(pcImpuesto, pnTasa, pnImporte)
   *
   LOCAL oTraslado
   oTraslado = CREATEOBJECT("CFDTraslado")
   WITH oTraslado
-   .Impuesto = pcImpuesto		
-   .TipoFactor = pcTipoFactor	&& Nuevo y obligatorio v.3.3	ByVigar
-   .TasaOCuota = pnTasaOCuota	&& Cambio de Tasa a TasaOcuota
+   .Impuesto = pcImpuesto
+   .Tasa = pnTasa
    .Importe = pnImporte
   ENDWITH
   
@@ -1944,8 +1643,8 @@ ENDDEFINE
 *
 DEFINE CLASS CFDRetencion AS Custom
  *
- *-- Atributos obligatorios
- Impuesto = ''
+ *-- Atributos obligatorios 
+ Impuesto = ""
  Importe = 0.00
  
  *-- Atributos opcionales 
@@ -1960,9 +1659,8 @@ ENDDEFINE
 DEFINE CLASS CFDTraslado AS Custom
  *
  *-- Atributos obligatorios 
- Impuesto = ''
- TipoFactor = ''
- TasaOCuota = 0.00
+ Impuesto = ""
+ Tasa = 0.00
  Importe = 0.00
  
  *-- Atributos opcionales 
@@ -2000,7 +1698,30 @@ DEFINE CLASS CFDAddenda AS CFDCollection
  *
 ENDDEFINE
 
+*-- CFDIRelacionados 
+* Expresa la información de los comprobantes fiscales relacionados.
+define class CFDIRelacionados as CFDCollection  
+ *
+ *-- Add (Metodo)
+ *   Incluye un nuevo cfdi relacionado en la lista
+ *
+ procedure Add(pcUUID)
+  local oRelacionado
+  oRelacionado = createobject("CFDIRelacionado")
+  with oRelacionado
+   .UUID = pcUUID
+  endwith
+  
+  return dodefault(oRelacionado)
+ endproc
 
+enddefine 
+
+*-- CFDIRelacionado
+* Expresa la información del comprobante fiscal relacionado. 
+define class CFDIRelacionado as Custom 
+	UUID = "" && Especifica folio fiscal UUID de un comprobante fiscal relacionado con el presente comprobante. 
+enddefine 
 
 *-- CFDCollection (Clase)
 *   Representa una coleccion de elementos
@@ -3046,6 +2767,7 @@ DEFINE CLASS XmlNodeClass AS custom
 	*-- Añade un nuevo subnodo al nodo actual
 	PROCEDURE addnode
 		LPARAMETERS poNode,pcData
+
 		  DO CASE
 		     CASE PCOUNT()=0
 		          poNode=CREATE("XMLNodeClass")
@@ -3062,7 +2784,6 @@ DEFINE CLASS XmlNodeClass AS custom
 		          poNode.Name = cName
 		          poNode.NameSpace = cNameSpace
 		  ENDCASE
-		  	
 		  poNode.createNodeLinks = THIS.createNodeLinks
 		  poNode.indentString = THIS.indentString
 		  
@@ -3089,6 +2810,7 @@ DEFINE CLASS XmlNodeClass AS custom
 		    STORE poNode TO ("THIS."+cNodeLink) 
 		   ENDIF
 		  ENDIF
+		  
 		  RETURN poNode
 	ENDPROC
 
@@ -3441,12 +3163,10 @@ ENDPROC
 * ------------------
 * <prefijo>DG			Contiene el nodo Comprobante
 * <prefijo>CO			Contiene los nodos Conceptos
-* <prefijo>RC			Contiene los nodos 	Impuestos-Retenciones dentro de Nodo Conceptos
-* <prefijo>TC			Contiene los nodos Impuestos-Traslados dentro de Nodo Conceptos
 * <prefijo>AD			Contiene los nodos informacionAduanera
 * <prefijo>RE			Contiene los nodos Retenciones
 * <prefijo>TR			Contiene los nodos Traslados
-* <prefijo>RF			Contiene los nodos RegimenFiscal	&& Se sustituye por Emisor.RegimenFiscal	v.3.3	ByVigar.
+* <prefijo>RF			Contiene los nodos RegimenFiscal
 *
 * -----------------------------------------------------------------------------------
 PROCEDURE CFDToCursor
@@ -3474,21 +3194,17 @@ ENDIF
  *-- VES Dic 23, 2010
  *   Se define los nombres de los cursores
  *
- PRIVATE cGenerales, cConceptos, cAduanas, cRetenciones, cTraslados, cCfdiRelacion, cCRetenciones, cCTraslados
+ PRIVATE cGenerales, cConceptos, cAduanas, cRetenciones, cTraslados
  IF EMPTY(pcCursorPrefix)
   pcCursorPrefix="Q"
  ENDIF
  cGenerales = pcCursorPrefix + "DG" 
- cConceptos = pcCursorPrefix + "CO"
- cAduanas = pcCursorPrefix + "AD"
- cRetenciones = pcCursorPrefix + "RE"
- cTraslados = pcCursorPrefix + "TR"  
- cRegimenes =  pcCursorPrefix + "RF"
- cCfdiRelacion = pcCursorPrefix + "RU"
- 
- && Concepto de Impuestos Trasladados y Retenidos dentreo del Nodo Conceptos	v.3.3	ByVigar
- cCRetenciones = pcCursorPrefix + "RC"
- cCtraslados = pcCursorPrefix + "TC"  
+ cConceptos = pcCursorPrefix + "CO" 
+ cAduanas = pcCursorPrefix + "AD"  
+ cRetenciones = pcCursorPrefix + "RE" 
+ cTraslados = pcCursorPrefix + "TR"   
+ cRegimenes =  pcCursorPrefix + "RF"   
+
 
 LOCAL olNodes 
 
@@ -3547,40 +3263,40 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		*? i,j,sAtributeName + "=" + sAtributeValues	&& Quitar comentario para ver el valor regresado.
 		
 		DO CASE 
-			CASE sAtributeName = "Version"
+			CASE sAtributeName = "version"
 				UPDATE (cGenerales) SET versions   = sAtributeValues		&& Atributo requerido con valor prefijado a 2.0 que indica la versión del estándar bajo el que se encuentra expresado el comprobante.
 				cveVersionXML = sAtributeValues  && VES Jul 21, 2012
-			CASE sAtributeName = "Serie"
+			CASE sAtributeName = "serie"
 				UPDATE (cGenerales) SET serie      = sAtributeValues		&& Atributo opcional para precisar la serie a la que corresponde el comprobante. Este atributo acepta una cadena de caracteres alfabéticos de 1 a 10 caracteres sin incluir caracteres acentuados.
-			CASE sAtributeName = "Folio"
+			CASE sAtributeName = "folio"
 				UPDATE (cGenerales) SET folio      = sAtributeValues		&& Atributo requerido que acepta un valor numérico entero superior a 0 que expresa el folio del comprobante.
-			CASE sAtributeName = "Fecha"
+			CASE sAtributeName = "fecha"
 				UPDATE (cGenerales) SET fecha      = sAtributeValues		&& Atributo requerido para la expresión de la fecha y hora de expedición del comprobante fiscal. Se expresa en la forma aaaa-mm-ddThh:mm:ss, de acuerdo con la especificación ISO 8601.
-			CASE sAtributeName = "Sello"
+			CASE sAtributeName = "sello"
 				UPDATE (cGenerales) SET sello      = sAtributeValues		&& Atributo requerido para contener el sello digital del comprobante fiscal, al que hacen referencia las reglas de resolución miscelánea aplicable. El sello deberá ser expresado cómo una cadena de texto en formato Base 64.
 			CASE sAtributeName = "noAprobacion"
 				UPDATE (cGenerales) SET noAprobaci = sAtributeValues		&& CFD: Atributo requerido para precisar el número de aprobación emitido por el SAT, para el rango de folios al que pertenece el folio particular que ampara el comprobante fiscal digital.
 			CASE sAtributeName = "anoAprobacion"
 				UPDATE (cGenerales) SET anoAprobac = sAtributeValues		&& CFD: Atributo requerido para precisar el año en que se solicito el folio que se están utilizando para emitir el comprobante fiscal digital.
-			CASE sAtributeName = "FormaPago"
-				UPDATE (cGenerales) SET FormaPago   = sAtributeValues		&& Atributo requerido para precisar la forma de pago que aplica para este comprobante fiscal digital. Se utiliza para expresar Pago en una sola exhibición o número de parcialidad pagada contra el total de parcialidades, Parcialidad 1 de X.
-			CASE sAtributeName = "NoCertificado"
+			CASE sAtributeName = "formaDePago"
+				UPDATE (cGenerales) SET formaDePag = sAtributeValues		&& Atributo requerido para precisar la forma de pago que aplica para este comprobante fiscal digital. Se utiliza para expresar Pago en una sola exhibición o número de parcialidad pagada contra el total de parcialidades, Parcialidad 1 de X.
+			CASE sAtributeName = "noCertificado"
 				UPDATE (cGenerales) SET noCertific = sAtributeValues		&& Atributo requerido para expresar el número de serie del certificado de sello digital que ampara al comprobante, de acuerdo al acuse correspondiente a 20 posiciones otorgado por el sistema del SAT.
-			CASE sAtributeName = "Certificado"
+			CASE sAtributeName = "certificado"
 				UPDATE (cGenerales) SET certific   = sAtributeValues		&& Atributo opcional que sirve para expresar el certificado de sello digital que ampara al comprobante como texto, en formato base 64.
-			CASE sAtributeName = "CondicionesDePago"
+			CASE sAtributeName = "condicionesDePago"
 				UPDATE (cGenerales) SET condicione = sAtributeValues		&& Atributo opcional para expresar las condiciones comerciales aplicables para el pago del comprobante fiscal digital.
-			CASE sAtributeName = "SubTotal"
-				UPDATE (cGenerales) SET SubTotal   = VAL(sAtributeValues)	&& Atributo requerido para representar la suma de los importes antes de descuentos e impuestos.
-			CASE sAtributeName = "Descuento"
-				UPDATE (cGenerales) SET descuento  = VAL(sAtributeValues)	&& Atributo opcional para representar el importe total de los descuentos aplicables antes de impuestos.
+			CASE sAtributeName = "subTotal"
+				UPDATE (cGenerales) SET subTotal   = VAL(sAtributeValues)&& Atributo requerido para representar la suma de los importes antes de descuentos e impuestos.
+			CASE sAtributeName = "descuento"
+				UPDATE (cGenerales) SET descuento  = VAL(sAtributeValues)&& Atributo opcional para representar el importe total de los descuentos aplicables antes de impuestos.
 			CASE sAtributeName = "motivoDescuento"
 				UPDATE (cGenerales) SET motivoDesc = sAtributeValues		&& Atributo opcional para expresar el motivo del descuento aplicable.
-			CASE sAtributeName = "Total"
-				UPDATE (cGenerales) SET Total      = VAL(sAtributeValues)&& Atributo requerido para representar la suma del subtotal, menos los descuentos aplicables, más los impuestos trasladados, menos los impuestos retenidos.
-			CASE sAtributeName = "MetodoPago"
+			CASE sAtributeName = "total"
+				UPDATE (cGenerales) SET total      = VAL(sAtributeValues)&& Atributo requerido para representar la suma del subtotal, menos los descuentos aplicables, más los impuestos trasladados, menos los impuestos retenidos.
+			CASE sAtributeName = "metodoDePago"
 				UPDATE (cGenerales) SET metodoDePa = sAtributeValues		&& Atributo opcional de texto libre para expresar el método de pago de los bienes o servicios amparados por el comprobante. Se entiende como método de pago leyendas tales como: cheque, tarjeta de crédito o debito, depósito en cuenta, etc.
-			CASE sAtributeName = "TipoDeComprobante"
+			CASE sAtributeName = "tipoDeComprobante"
 				UPDATE (cGenerales) SET tipoDeComp = sAtributeValues		&& Atributo requerido para expresar el efecto del comprobante fiscal para el contribuyente emisor.
 			CASE sAtributeName = "TipoCambio"
 				UPDATE (cGenerales) SET TipoCambio = sAtributeValues		&& CFDI: Atributo opcional para representar el tipo de cambio conforme a la moneda usada
@@ -3627,13 +3343,11 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		*? i,j,sAtributeName + "=" + sAtributeValues	&& Quitar comentario para ver el valor regresado.
 		
 		DO CASE 
-			CASE sAtributeName = "Rfc"
+			CASE sAtributeName = "rfc"
 			    sAtributeValues = CHRT(sAtributeValues,".- ","")   && VES Nov 16, 2011   
-				UPDATE (cGenerales) SET ERfc           = sAtributeValues		&& Atributo requerido para la Clave del Registro Federal de Contribuyentes correspondiente al contribuyente emisor del comprobante sin guiones o espacios.
-			CASE sAtributeName = "RegimenFiscal"
-				UPDATE (cGenerales) SET ERegimenFiscal = sAtributeValues		&& v.3.3	ByVigar
-			CASE sAtributeName = "Nombre"
-				UPDATE (cGenerales) SET Enombre        = sAtributeValues		&& Atributo requerido para el nombre o razón social del contribuyente emisor del comprobante.
+				UPDATE (cGenerales) SET Erfc       = sAtributeValues		&& Atributo requerido para la Clave del Registro Federal de Contribuyentes correspondiente al contribuyente emisor del comprobante sin guiones o espacios.
+			CASE sAtributeName = "nombre"
+				UPDATE (cGenerales) SET Enombre    = sAtributeValues		&& Atributo requerido para el nombre o razón social del contribuyente emisor del comprobante.
 		ENDCASE 
 	NEXT j
 NEXT i
@@ -3671,7 +3385,7 @@ IF olNodes.LENGTH > 0 THEN   && VES Jul 21, 2012
 					UPDATE (cGenerales) SET Eestado    = sAtributeValues		&& Atributo requerido que sirve para precisar el estado o entidad federativa donde se da la ubicación.
 				CASE sAtributeName = "pais"
 					UPDATE (cGenerales) SET Epais      = sAtributeValues		&& Atributo requerido que sirve para precisar el país donde se da la ubicación.
-				CASE sAtributeName = "CodigoPostal"
+				CASE sAtributeName = "codigoPostal"
 					UPDATE (cGenerales) SET EcodigoPos = sAtributeValues		&& Atributo requerido que sirve para asentar el código postal en donde se da la ubicación.
 			ENDCASE 
 		NEXT j
@@ -3713,12 +3427,11 @@ FOR i = 0 TO olNodes.LENGTH - 1
 				UPDATE (cGenerales) SET Xestado    = sAtributeValues		&& Atributo requerido que sirve para precisar el estado o entidad federativa donde se da la ubicación.
 			CASE sAtributeName = "pais"
 				UPDATE (cGenerales) SET Xpais      = sAtributeValues		&& Atributo requerido que sirve para precisar el país donde se da la ubicación.
-			CASE sAtributeName = "CodigoPostal"
+			CASE sAtributeName = "codigoPostal"
 				UPDATE (cGenerales) SET XcodigoPos = sAtributeValues		&& Atributo requerido que sirve para asentar el código postal en donde se da la ubicación.
 		ENDCASE 
 	NEXT j
 NEXT i
-
 
 * ---------------------------------------------------------------------------
 * <Comprobante> -- <Emisor> -- <RegimenFiscal>
@@ -3730,8 +3443,9 @@ IF olNodes.LENGTH <= 0 THEN
     CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Emisor> no presente."
 	RETURN .F.
 ENDIF 
-LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Emisor"),'')	&& Función que recorre cada nodo hijo de un nodo padre dado.
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Emisor"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
 SELECT (cGenerales)
+
 
 * ---------------------------------------------------------------------------
 * <Comprobante> -- <Receptor>
@@ -3749,13 +3463,11 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		*? i,j,sAtributeName + "=" + sAtributeValues	&& Quitar comentario para ver el valor regresado.
 		
 		DO CASE
-			CASE sAtributeName = "Rfc"
+			CASE sAtributeName = "rfc"
 				sAtributeValues = CHRT(sAtributeValues,".- ","")   && VES Nov 16, 2011
-				UPDATE (cGenerales) SET RRfc       = sAtributeValues		&& Atributo requerido para precisar la Clave del Registro Federal de Contribuyentes correspondiente al contribuyente receptor del comprobante.
-			CASE sAtributeName = "Nombre"
-				UPDATE (cGenerales) SET RNombre    = sAtributeValues		&& Atributo opcional para precisar el nombre o razón social del contribuyente receptor.
-			CASE sAtributeName = "UsoCFDI"
-				UPDATE (cGenerales) SET Usocfdi    = sAtributeValues		&& Atributo requerido para precisar la clave del uso que le dara el contribuyente receptor.
+				UPDATE (cGenerales) SET Rrfc       = sAtributeValues		&& Atributo requerido para precisar la Clave del Registro Federal de Contribuyentes correspondiente al contribuyente receptor del comprobante.
+			CASE sAtributeName = "nombre"
+				UPDATE (cGenerales) SET Rnombre    = sAtributeValues		&& Atributo opcional para precisar el nombre o razón social del contribuyente receptor.
 		ENDCASE 
 	NEXT j
 NEXT i
@@ -3791,10 +3503,8 @@ FOR i = 0 TO olNodes.LENGTH - 1
 				UPDATE (cGenerales) SET Restado    = sAtributeValues		&& Atributo opcional que sirve para precisar el estado o entidad federativa donde se da la ubicación.
 			CASE sAtributeName = "pais"
 				UPDATE (cGenerales) SET Rpais      = sAtributeValues		&& Atributo requerido que sirve para precisar el país donde se da la ubicación.
-			CASE sAtributeName = "CodigoPostal"
+			CASE sAtributeName = "codigoPostal"
 				UPDATE (cGenerales) SET RcodigoPos = sAtributeValues		&& Atributo opcional que sirve para asentar el código postal en donde se da la ubicación.
-			CASE sAtributeName = "UsoCFDI"
-				UPDATE (cGenerales) SET UsoCfdi = sAtributeValues			&& Atributo requerido que sirve para asentar la clave de Uso que le dara el Receptor al CFDI.
 		ENDCASE 
 	NEXT j
 NEXT i
@@ -3809,7 +3519,7 @@ IF olNodes.LENGTH <= 0 THEN
     CFDConf.ultimoError = "Comprobante inválido. Nodo <"+lcPrefijo+"Conceptos> no presente."
 	RETURN .F.
 ENDIF 
-LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Conceptos"),'')	&& Función que recorre cada nodo hijo de un nodo padre dado.
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Conceptos"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
 SELECT (cGenerales)
 
 * ---------------------------------------------------------------------------
@@ -3828,31 +3538,32 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		*? i,j,sAtributeName + "=" + sAtributeValues	&& Quitar comentario para ver el valor regresado.
 		
 		DO CASE
-			CASE sAtributeName = "TotalImpuestosTrasladados"	&& Cambio de totalImpuestosTrasladados a TotalImpuestosTrasladados	v.3.3	ByVigar.
+			CASE sAtributeName = "totalImpuestosTrasladados"
 				UPDATE (cGenerales) SET TotImpTras = VAL(sAtributeValues) && Atributo opcional para expresar el total de los impuestos trasladados que se desprenden de los conceptos expresados en el comprobante fiscal digital.
-			CASE sAtributeName = "TotalImpuestosRetenidos"		&& Cambio de totalImpuestosRetenidos a TotalImpuestosRetenidos	v.3.3	ByVigar.
+			CASE sAtributeName = "totalImpuestosRetenidos"
 				UPDATE (cGenerales) SET TotImpRet  = VAL(sAtributeValues) && Atributo opcional para expresar el total de los impuestos retenidos que se desprenden de los conceptos expresados en el comprobante fiscal digital.
 		ENDCASE 
 	NEXT j
 NEXT i
+
 
 * ---------------------------------------------------------------------------
 * <Comprobante> -- <Impuestos> -- <Retenciones> -- <Retencion>  <<-- Uno para ISR y otro para IVA
 * Nodo opcional para asentar o referir los impuestos trasladados aplicables.
 * ---------------------------------------------------------------------------
 SELECT (cRetenciones)
-LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Retenciones"),'')	&& Función que recorre cada nodo hijo de un nodo padre dado.
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Retenciones"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
 GO TOP 
 SCAN 
 	DO CASE 
-		CASE ALLTRIM(EVAL(cRetenciones+".Impuesto")) = "ISR"
+		CASE ALLTRIM(EVAL(cRetenciones+".impuesto")) = "ISR"
 			UPDATE (cGenerales) SET ;
 				RetISR = "ISR", ;
-				TotRetISR = EVAL(cRetenciones+".Importe")
+				TotRetISR = EVAL(cRetenciones+".importe")
 		CASE ALLTRIM(EVAL(cRetenciones+".impuesto")) = "IVA"
 			UPDATE (cGenerales) SET ;
 				RetIVA = "IVA", ;
-				TotRetIVA = EVAL(cRetenciones+".Importe")
+				TotRetIVA = EVAL(cRetenciones+".importe")
 	ENDCASE 			
 ENDSCAN 
 SELECT (cGenerales)
@@ -3863,34 +3574,20 @@ SELECT (cGenerales)
 * Nodo opcional para asentar o referir los impuestos trasladados aplicables.
 * ---------------------------------------------------------------------------
 SELECT (cTraslados)
-*				*Base = EVAL(cTraslados+".Importe"), ;		&& Nuevo Requerido 	v.3.3	By Vigar.
-*!*	WAIT WINDOW '1'
-*!*	LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Traslados"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
-*!*	WAIT WINDOW '2'
-*!*	LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
-*!*	WAIT WINDOW '3'
-*!*	LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
-*!*		WAIT WINDOW '4'
-*!*		LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Traslados/"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
-***	*** Esto funciona WAIT WINDOW '5' --- Perfecto solo hay que enviar una variable global. con el numero de coincidencias...talves...
-***	*** Esto funciona LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Traslados"),'IT')	&& Función que recorre cada nodo hijo de un nodo padre dado.
-*** Esto funciona	WAIT WINDOW '6'
-	LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Traslados/"+lcPrefijo+"Traslado"),'IT')	&& Función que recorre cada nodo hijo de un nodo padre dado.
-*!*	WAIT WINDOW '7'
-*!*	LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Traslados/"+lcPrefijo+"Traslado/"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
+LeerDatos(xdoc.selectNodes("//"+lcPrefijo+"Comprobante/"+lcPrefijo+"Impuestos/"+lcPrefijo+"Traslados"))	&& Función que recorre cada nodo hijo de un nodo padre dado.
+GO TOP 
 SCAN 
 	DO CASE 
-		CASE ALLTRIM(EVAL(cTraslados+".Impuesto")) = "IVA"
+		CASE ALLTRIM(EVAL(cTraslados+".impuesto")) = "IVA"
 			UPDATE (cGenerales) SET ;
-				TipoFactor = 'Tasa', ;						&& Nuevo Requerido 	v.3.3	By Vigar.
-				Impuesto = "IVA", ;
-				TasaoCuota = EVAL(cTraslados+".TasaOCuota"), ;
-				Importe = EVAL(cTraslados+".Importe")
-		CASE ALLTRIM(EVAL(cTraslados+".Impuesto")) = "IEPS"
+				impuesto = "IVA", ;
+				tasa = EVAL(cTraslados+".tasa"), ;
+				importe = EVAL(cTraslados+".importe")
+		CASE ALLTRIM(EVAL(cTraslados+".impuesto")) = "IEPS"
 			UPDATE (cGenerales) SET ;
 				TraIEPS = "IEPS", ;
-				TraTasIEPS = EVAL(cTraslados+".TasaOCuota"), ;
-				TotTraIEPS = EVAL(cTraslados+".Importe")
+				TraTasIEPS = EVAL(cTraslados+".tasa"), ;
+				TotTraIEPS = EVAL(cTraslados+".importe")
 	ENDCASE 			
 ENDSCAN 
 SELECT (cGenerales)
@@ -3910,15 +3607,15 @@ FOR i = 0 TO olNodes.LENGTH - 1
 		*? i,j,sAtributeName + "=" + sAtributeValues	&& Quitar comentario para ver el valor regresado.
 		
 		DO CASE
-			CASE sAtributeName = "Version"
+			CASE sAtributeName = "version"
 				UPDATE (cGenerales) SET versionTFD = sAtributeValues
 			CASE sAtributeName = "FechaTimbrado"
 				UPDATE (cGenerales) SET fechaTFD  = sAtributeValues
-			CASE sAtributeName = "SelloCFD"
+			CASE sAtributeName = "selloCFD"
 				UPDATE (cGenerales) SET selloCFD  = sAtributeValues
-			CASE sAtributeName = "NoCertificadoSAT"
+			CASE sAtributeName = "noCertificadoSAT"
 				UPDATE (cGenerales) SET certSAT  = sAtributeValues
-			CASE sAtributeName = "SelloSAT"
+			CASE sAtributeName = "selloSAT"
 				UPDATE (cGenerales) SET selloSAT  = sAtributeValues
 			CASE sAtributeName = "UUID"
 				UPDATE (cGenerales) SET UUID  = sAtributeValues
@@ -3957,14 +3654,14 @@ RETURN
 * Función para obtener cada atributo de cada nodo hijo dado un nodo padre
 * --------------------------------------------------------------------------------
 FUNCTION LeerDatos
-	LPARAMETERS root,sroot
-	
-	LOCAL CHILD
-	
+	LPARAMETERS root
+
+	LOCAL CHILD 
+
 	*!* Aqui se procesan los nodos
 	FOR EACH CHILD IN root
-		*? CHILD.nodeName'
-		*WAIT WINDOW 'Prefijo + Nodo Hijo: ' + CHILD.nodeName
+		*? CHILD.nodeName
+		
 		DO CASE 
 			CASE CHILD.nodeName == lcPrefijo+"Concepto"
 				INSERT INTO (cConceptos) (cantidad) VALUES (0)
@@ -3972,95 +3669,22 @@ FUNCTION LeerDatos
 					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
 					sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
 					*? j,sAtributeName + "=" + sAtributeValues
-					*WAIT WINDOW 'Atributo del Nodo...: ' + sAtributeName
 					DO CASE 
-						CASE sAtributeName = "ClaveProdServ"
-							REPLACE ClaveProdServ WITH sAtributeValues IN (cConceptos)
-						CASE sAtributeName = "NoIdentificacion"							&& No usar en pagos
-							REPLACE NoIdentificacion WITH sAtributeValues IN (cConceptos)
-						CASE sAtributeName = "Cantidad"
+						CASE sAtributeName = "cantidad"
 							REPLACE cantidad WITH VAL(sAtributeValues) IN (cConceptos)
-						CASE sAtributeName = "ClaveUnidad"
-							REPLACE claveunidad WITH sAtributeValues IN (cConceptos)
-						CASE sAtributeName = "Unidad"									&& No usar en pagos
+						CASE sAtributeName = "unidad"
 							REPLACE unidad WITH sAtributeValues IN (cConceptos)
-						CASE sAtributeName = "Descripcion"
+						CASE sAtributeName = "noIdentificacion"
+							REPLACE noID WITH sAtributeValues IN (cConceptos)
+						CASE sAtributeName = "descripcion"
 							REPLACE descripcio WITH sAtributeValues IN (cConceptos)
-						CASE sAtributeName = "ValorUnitario"
-							REPLACE ValorUnita WITH VAL(sAtributeValues) IN (cConceptos)
-						CASE sAtributeName = "Importe"
+						CASE sAtributeName = "valorUnitario"
+							REPLACE valorUnita WITH VAL(sAtributeValues) IN (cConceptos)
+						CASE sAtributeName = "importe"
 							REPLACE importe WITH VAL(sAtributeValues) IN (cConceptos)
-						CASE sAtributeName = "Descuento"								&& No usar en pagos
-							REPLACE Dscnt WITH VAL(sAtributeValues) IN (cConceptos)
-						CASE sAtributeName = "Impuesto"									&& No usar en pagos
-							REPLACE impuesto WITH sAtributeValues IN (cConceptos)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-					OTHERWISE
-						WAIT WINDOW 'Atributo no encontrado: ' + sAtributeName
 					ENDCASE 
-				ENDFOR 				
-					
-			CASE CHILD.nodeName == lcPrefijo+"Traslado"
-				IF sroot <> 'IT'
-				*INSERT INTO (cConceptos) (cantidad) VALUES (0)
-					FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
-						sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
-						sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
-						*? j,sAtributeName + "=" + sAtributeValues
-						*WAIT WINDOW 'Atributo del Nodo...: ' + sAtributeName
-						DO CASE
-*!*								CASE sAtributeName = "Base"									&& Nuevo en v.3.3
-*!*									REPLACE base WITH sAtributeValues IN (cConceptos)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-							CASE sAtributeName = "Impuesto"
-								REPLACE impuesto WITH sAtributeValues IN (cConceptos)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-							CASE sAtributeName = "TipoFactor"
-								REPLACE tipofactor WITH sAtributeValues IN (cConceptos)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-							CASE sAtributeName = "TasaOCuota"
-								REPLACE tasaocuota WITH VAL(sAtributeValues) IN (cConceptos)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
-							CASE sAtributeName = "Importe"
-								REPLACE iimporte WITH VAL(sAtributeValues) IN (cConceptos)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
-						*OTHERWISE
-						*	WAIT WINDOW 'Atributo no encontrado: ' + sAtributeName
-						ENDCASE
-					ENDFOR
-				ELSE
-					*WAIT WINDOW sroot
-					INSERT INTO (cTraslados) (impuesto) VALUES (" ")
-					FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
-						sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
-						sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
-						*? j,sAtributeName + "=" + sAtributeValues
-						DO CASE 
-							CASE sAtributeName = "impuesto"
-								REPLACE impuesto WITH sAtributeValues IN (cTraslados)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-							CASE sAtributeName = "importe"
-								REPLACE importe WITH VAL(sAtributeValues) IN (cTraslados)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
-							CASE sAtributeName = "tasa"
-								REPLACE tasa WITH VAL(sAtributeValues) IN (cTraslados)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
-						ENDCASE 
-					ENDFOR
-				ENDIF
-			CASE CHILD.nodeName == lcPrefijo+"Retencion"
-				*INSERT INTO (cConceptos) (cantidad) VALUES (0)
-				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
-					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
-					sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
-					*? j,sAtributeName + "=" + sAtributeValues
-					*WAIT WINDOW 'Atributo del Nodo...: ' + sAtributeName
-					DO CASE
-*!*							CASE sAtributeName = "Base"									&& Nuevo en v.3.3
-*!*								REPLACE base WITH sAtributeValues IN (cConceptos)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-						CASE sAtributeName = "Impuesto"
-							REPLACE impuesto WITH sAtributeValues IN (cConceptos)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-						CASE sAtributeName = "TipoFactor"
-							REPLACE tipofactor WITH sAtributeValues IN (cConceptos)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
-						CASE sAtributeName = "TasaOCuota"
-							REPLACE tasaocuota WITH VAL(sAtributeValues) IN (cConceptos)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
-						CASE sAtributeName = "Importe"
-							REPLACE iimporte WITH VAL(sAtributeValues) IN (cConceptos)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
-					*OTHERWISE
-					*	WAIT WINDOW 'Atributo no encontrado: ' + sAtributeName
-					ENDCASE
-				ENDFOR 
+				ENDFOR
+				
 			CASE CHILD.nodeName == lcPrefijo+"CuentaPredial"
 				SELECT (cConceptos)
 				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
@@ -4073,6 +3697,36 @@ FUNCTION LeerDatos
 					ENDCASE 
 				ENDFOR
 				
+			CASE CHILD.nodeName == lcPrefijo+"Retencion"
+				INSERT INTO (cRetenciones) (impuesto) VALUES (" ")
+				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
+					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
+					sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
+					*? j,sAtributeName + "=" + sAtributeValues
+					DO CASE 
+						CASE sAtributeName = "impuesto"
+							REPLACE impuesto WITH sAtributeValues IN (cRetenciones)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
+						CASE sAtributeName = "importe"
+							REPLACE importe WITH VAL(sAtributeValues) IN (cRetenciones)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.						
+					ENDCASE 
+				ENDFOR 
+				
+			CASE CHILD.nodeName == lcPrefijo+"Traslado"
+				INSERT INTO (cTraslados) (impuesto) VALUES (" ")
+				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
+					sAtributeName = CHILD.ATTRIBUTES.ITEM(j).nodeName
+					sAtributeValues = CHILD.ATTRIBUTES.ITEM(j).TEXT
+					*? j,sAtributeName + "=" + sAtributeValues
+					DO CASE 
+						CASE sAtributeName = "impuesto"
+							REPLACE impuesto WITH sAtributeValues IN (cTraslados)		&& Atributo requerido para señalar el tipo de impuesto retenido. ISR o IVA.
+						CASE sAtributeName = "importe"
+							REPLACE importe WITH VAL(sAtributeValues) IN (cTraslados)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
+						CASE sAtributeName = "tasa"
+							REPLACE tasa WITH VAL(sAtributeValues) IN (cTraslados)	&& Atributo requerido para señalar el importe o monto del impuesto retenido.
+					ENDCASE 
+				ENDFOR
+			
 			CASE CHILD.nodeName == lcPrefijo+"RegimenFiscal"
 				INSERT INTO (cRegimenes) (regimen) VALUES (" ")
 				FOR j = 0 TO CHILD.ATTRIBUTES.LENGTH - 1
@@ -4122,10 +3776,12 @@ FUNCTION LeerDatos
 							REPLACE ieduRFCPa WITH sAtributeValues IN (cConceptos)
 					ENDCASE 
 				ENDFOR
+
+
 		ENDCASE  
 		*** Si el nodo que estamos procesando tiene descendencia volvemos a llamar a la función LeerDatos pasandole el nodo actual
 		IF CHILD.hasChildNodes
-			LeerDatos(CHILD.childNodes,'')
+			LeerDatos(CHILD.childNodes)
 		ENDIF
 	ENDFOR
 ENDFUNC
@@ -4135,34 +3791,32 @@ ENDFUNC
 * Procedimiento que crea el entorno de datos para contener la información del comprobante
 * --------------------------------------------------------------------------------
 PROCEDURE CreaFactura
-	
+
 	swError = .T.
 
 	* Datos Generales de la Factura 
 	CREATE CURSOR (cGenerales)    ;
 	   (                    ;
-	    Versions   C(005)  ,; 
-	    Serie      C(020)  ,; 	&& De 1 a 10 Caracteres para CFD / hasta 20 para CFDI
-	    Folio      C(010)  ,; 	&& 10 Caracteres de 1 al 2147483647
-	    Fecha      C(020)  ,; 
+	    versions   C(005)  ,; 
+	    serie      C(020)  ,; 	&& De 1 a 10 Caracteres para CFD / hasta 20 para CFDI
+	    folio      C(010)  ,; 	&& 10 Caracteres de 1 al 2147483647
+	    fecha      C(020)  ,; 
 	    noAprobaci C(014)  ,; 	&& 14 Máximo para CFDs
 	    anoAprobac C(004)  ,; 	&& 4 Dígitos
-	    FormaPago  C(080)  ,; 
-	    UsoCFDI    C(250)  ,; 	&& Nuevo y Obligatorio Uso del CFDI que le dara el Cliente en v3.3	ByVigar.
+	    formaDePag C(080)  ,; 
 	    condicione C(250)  ,; 
 	    metodoDePa C(250)  ,; 
 	    motivoDesc C(250)  ,; 
-	    SubTotal   N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
-	    Descuento  N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
-	    Total      N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
+	    subTotal   N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
+	    descuento  N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
+	    total      N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 	    tipoDeComp C(010)  ,; 
 	    noCertific C(030)  ,; 	&& Hasta 20 segun Anexo 20
-	    Sello      M       ,; 
+	    sello      M       ,; 
 	    certific   M       ,; 
 	    cadenaorig M       ,; 
 	    Enombre    C(150)  ,; 	&& 
 	    Erfc       C(013)  ,;   && Tipo especial: t_RFC de 12-13 Caracteres
-	    ERegimenFiscal       C(003)  ,;   && v.3.3	ByVigar
 	    Ecalle     C(100)  ,; 
 	    EcodigoPos C(010)  ,; 
 	    Ecolonia   C(100)  ,; 	&& 
@@ -4201,10 +3855,8 @@ PROCEDURE CreaFactura
 	    RetIVA     C(010)  ,; 
 	    TotRetIVA  N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 	    TotImpRet  N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
-	    Base       N(10,6) ,; 	&& Nuevo y Obligatorio en v.3.3		ByVigar.
 	    impuesto   C(010)  ,; 
-	    TipoFactor C(006)  ,;   && Nuevo y Obligatorio en v.3.3		ByVigar.
-	    TasaOCuota N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales	Cambio de "tasa" a TasaOCuota	v.3.3	ByVigar.
+	    tasa       N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 	    importe    N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
 	    TraIEPS    C(004)  ,; 
 		TraTasIEPS N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
@@ -4237,52 +3889,35 @@ PROCEDURE CreaFactura
 	    SFolioFO   C(20)   ,;
 	    FolioFO    C(10)   ,;
 	    NumCtaPago C(250)  ,;
-	    LugarExp   C(250)  ,;
-	    cveproser  C(008)  ,;
-	    NoIdentificacion C(020) ,;
-	    CveUnidad C(003) ,;
-	    Descripcion C(250) ,;
-	    ValorUnitario   N(10,6), ;
-	    RegsFis   C(100), ;
-	    Banda N(1) ;
+	    LugarExp   C(250)   ;
 	   )
-	
+
 	* Datos de las partidas o conceptos que forman la factura
 	CREATE CURSOR (cConceptos) ;
 	   (                      ;
-	    ClaveProdServ   C(008) ,; 
-	    Cantidad    N(10,3) ,; 
-	    ClaveUnidad   C(003) ,;
-	    NoIdentificacion   C(020) ,;
-	    descripcio   M		,;
-	    noID         C(020)  ,; 
-	    InfoAduana   C(250)  ,; 
-	    importe      N(10,6) ,; && Tipo especial: t_importe de 2 a 6 decimales
-	    unidad       C(010)  ,; 
-	    valorUnita   N(10,6) ,; && Tipo especial: t_importe de 2 a 6 decimales
-	    Dscnt        N(10,6) ,; 
-	    nopredio     C(050)  ,;
-	    ianumero	 C(050) ,;  && Informacion aduanera - numero
-	    iafecha		 C(010)	,;  && Informacion aduanera - fecha
-	    iaaduana	 C(050)	,;  && Informacion aduanera - aduana
-	    ieduNomAl	 C(080)	,;	&& Complemento iedu: nombreAlumno
-	    ieduCURP	 C(018)	,;	&& Complemento iedu: CURP
-	    ieduNivEd	 C(040)	,;	&& Complemento iedu: nivelEducativo
-	    ieduRVOE	 C(040)	,;	&& Complemento iedu: autRVOE
-	    ieduRFCPa	 C(013) ,;  && Complemento iedu: rfcPago
-		base        N(15,2) ,; 	&& Puede ser IVA o IEPS								Nuevo V.3.3	ByVigar
-		impuesto    C(004)  ,; 	&& Puede ser IVA o IEPS								Nuevo V.3.3	ByVigar
-		tipofactor  C(006)  ,; 	&& Puede ser Tasa, Cuota o Exento					Nuevo V.3.3	ByVigar
-		tasaocuota  N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales		Nuevo V.3.3	ByVigar
-		iimporte    N(15,2) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales		Nuevo V.3.3	ByVigar
-		banda N(1) ;
+	    cantidad    N(10,3) ,; 
+	    noID        C(020)  ,; 
+	    descripcio  M		,;
+	    InfoAduana  C(250)  ,; 
+	    importe     N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
+	    unidad      C(010)  ,; 
+	    valorUnita  N(10,6) ,; 	&& Tipo especial: t_importe de 2 a 6 decimales
+	    nopredio    C(050)  ,;
+	    ianumero	C(50)   ,;  && Informacion aduanera - numero
+	    iafecha		C(10)	,;  && Informacion aduanera - fecha
+	    iaaduana	C(50)	,;  && Informacion aduanera - aduana
+	    ieduNomAl	C(80)	,;	&& Complemento iedu: nombreAlumno
+	    ieduCURP	C(18)	,;	&& Complemento iedu: CURP
+	    ieduNivEd	C(40)	,;	&& Complemento iedu: nivelEducativo
+	    ieduRVOE	C(40)	,;	&& Complemento iedu: autRVOE
+	    ieduRFCPa	C(13)	 ;  && Complemento iedu: rfcPago
 	   )
-
+	
 	* Datos de retenciones
 	CREATE CURSOR (cRetenciones) ;
 		(                   ;
 		 impuesto   C(004) ,; 	&& Puede ser ISR o IVA
-		 importe    N(10,6) ; 	&& Tipo especial: t_importe de 2 a 6 decimales
+		 importe    N(10,6) ; 	&& && Tipo especial: t_importe de 2 a 6 decimales
 		)
 		
 	* Datos de traslados
@@ -4290,26 +3925,6 @@ PROCEDURE CreaFactura
 		(                   ;
 		 impuesto   C(004) ,; 	&& Puede ser IVA o IEPS
 		 tasa       N(10,6),; 	&& Tipo especial: t_importe de 2 a 6 decimales
-		 importe    N(10,6) ; 	&& Tipo especial: t_importe de 2 a 6 decimales
-		)
-		
-	* Datos de traslados de los registros por concepto	v.3.3 ByVigar
-	CREATE CURSOR (cCTraslados) ;
-		(                   ;
-		 base       N(10,6),;
-		 impuesto   C(004) ,; 	&& Puede ser IVA o IEPS
-		 tipofactor C(006) ,; 	&& Puede ser Tasa, Cuota o Exento				Nuevo V.3.3	ByVigar
-		 tasaocuota N(10,6),; 	&& Tipo especial: t_importe de 2 a 6 decimales
-		 importe    N(10,6) ; 	&& Tipo especial: t_importe de 2 a 6 decimales
-		)
-		
-	* Datos de Retenciones de los registros por concepto	v.3.3 ByVigar
-	CREATE CURSOR (cCRetenciones) ;
-		(                   ;
-		 base       N(10,6),;
-		 impuesto   C(004) ,; 	&& Puede ser IVA o IEPS
-		 tipofactor C(006) ,; 	&& Puede ser Tasa, Cuota o Exento				Nuevo V.3.3	ByVigar
-		 tasaocuota N(10,6),; 	&& Tipo especial: t_importe de 2 a 6 decimales
 		 importe    N(10,6) ; 	&& Tipo especial: t_importe de 2 a 6 decimales
 		)
 		
@@ -4383,36 +3998,36 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
   IF NOT CFDToCursor(pcXML) 
    RETURN .F.
   ENDIF
+  
   *-- Se anade una columna REGSFIS al cursor de datos generales
   *
-  SELECT QDG
-  REPLACE regsfis WITH m.regsfis IN QDG
-*!*	  ALTER TABLE QDG ADD regsfis M
+  ALTER TABLE QDG ADD regsfis M
   SELECT QRF
-	REPLACE regsfis WITH m.regsfis IN QDG
   SCAN
-    *REPLACE regsfis WITH ALLTRIM(regsfis)+" "+ALLTRIM(QRF.regimen) IN QDG
-    REPLACE regsfis WITH m.regsfis IN QDG
+    REPLACE regsfis WITH ALLTRIM(regsfis)+" "+ALLTRIM(QRF.regimen) IN QDG
   ENDSCAN
+  
   *-- Se reemplazan los conceptos por los que estan en el entorno (curConceptos)
   *
   *   VES Oct 10, 2011: Se elimino la clausula READWRITE para usar una tecnica 
   *   compatible con versiones de VFP anteriores a la 9
   *
   IF plReplaceCO
-    SELECT cantidad, codigo as noIdentificacion, descripcion as descripcio, "" as infoaduana, ;
-  		   importe, Dscnt, unidad, precio_unit as valorunita, cuentapredial as nopredio, ;
-  		   cveproser,cveunidad,base,impuesto,tipofactor,tasaocuota,iimporte,banda,regsfis ;
+    SELECT cantidad, codigo as noId, descripcion as descripcio, "" as infoaduana, ;
+  		   importe, unidad, precio_unit as valorunita, cuentapredial as nopredio ;
       FROM curConceptos ;
       INTO CURSOR QCOTEMP
     SELECT 0
     USE (DBF("QCOTEMP")) ALIAS QCO AGAIN
     USE IN QCOTEMP
-  ENDIF
+  ENDIF 
+
   *-- Se anade una columna BANDA al cursor de conceptos
   *
-*!*		  ALTER TABLE QCO ADD banda N (1)
-	  UPDATE QCO SET banda = 1
+  ALTER TABLE QCO ADD banda N (1)
+  UPDATE QCO SET banda = 1
+
+
   *-- Se genera la banda de subtotal y descuento
   *
   INSERT INTO QCO (banda, descripcio, valorunita, importe) ;
@@ -4427,17 +4042,17 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
 
   *-- Se pasa la informacion de iva trasladado a la tabla de conceptos como banda-3
   *
-  LOCAL cImpuesto,cTipoFactor,nTasaocuota,nImporte
+  LOCAL cImpuesto,nTasa,nImporte
   SELECT QTR
   GO TOP
   SCAN
    *
    cImpuesto=impuesto
-   nTasaocuota=tasa
+   nTasa=tasa
    nImporte=importe
 
    INSERT INTO QCO (banda, descripcio, valorunita, importe) ;
-            VALUES (3, cImpuesto, nTasaocuota, nImporte)
+            VALUES (3, cImpuesto, nTasa, nImporte)
    *
    SELECT QTR
   ENDSCAN
@@ -4472,6 +4087,7 @@ PROCEDURE CFDPrint(pcXML, plPreview, plPDFMode, pcPDFTarget, plReplaceCO)
   SELECT QCO
   GO TOP
   
+
   *-- Se emite el reporte
   *
   *   VES Jul 21, 2012
@@ -4719,12 +4335,12 @@ FUNCTION CFDExtraerCadenaOriginal(pcXML, pcOpenSSL)
  cBuff=FILETOSTR(pcXML)
  cBuff=SUBS(cBuff,AT("Comprobante ",cBuff))
  cBuff=LEFT(cBuff,AT(">",cBuff))
- cBuff=SUBS(cBuff,ATC("Version",cBuff))
+ cBuff=SUBS(cBuff,ATC("version",cBuff))
  cBuff=LEFT(cBuff,AT(" ",cBuff) - 1)
- cBuff=CHRT(cBuff,[Version="],"")			&& Nuevo debe quedar como esta en el archivo con Mayuscula 'Version'	ByVigar.
- *cBuff=CHRT(LOWER(cBuff),[Version="],"")
+ cBuff=CHRT(LOWER(cBuff),[version="],"")
  nXMLVersion = CFDVersions.fromString(cBuff) 
 
+ 
   
  *-- ARC Dic 27, 2011: Define el XSLT local a utilizar
  *   VES Ene 12, 2012: Se cambio CFDConf.XMLVersion por nXMLVersion
@@ -4737,11 +4353,6 @@ FUNCTION CFDExtraerCadenaOriginal(pcXML, pcOpenSSL)
  		cXsltFile = "cadenaoriginal_2_2_local.xslt"
  	CASE nXMLversion = CFDVersions.CFDi_32
  		cXsltFile = "cadenaoriginal_3_2_local.xslt"
- 	CASE nXMLversion = CFDVersions.CFDi_33
- 		cXsltFile = "cadenaoriginal_3_3_local.xslt"
- OTHERWISE
- 	WAIT WINDOW 'No se encontreo versión de cfdi'
- 	RETURN ''
  ENDCASE 
  cBuff = FILETOSTR(pcOpenSSL + cXsltFile)
  cBuff = STRT(cBuff,"<ssl-path>",CHRT(pcOpenSSL,"\","/"))
@@ -4978,18 +4589,13 @@ FUNCTION CFDLeerCertificado(pcArchivoCER, pcOpenSSL)
  LOCAL cBATFile,cTempFile
  cBATFile = GetTempFile("BAT")
  cTempFile = JUSTSTEM(cBATFile)
- ***********	penssl x509 -inform DER -outform PEM -in {cerFile} -pubkey -out {tempFile}.pem " + CRLF + ;
-************	openssl x509 -outform der -in {tempFile}.pem -out {tempFile}.der + ;
+ 
  LOCAL cBuff
  cBuff = pcOpenSSL + " x509 -inform DER -outform PEM -in {cerFile} -pubkey > {tempFile}.pem " + CRLF + ;
          pcOpenSSL + " x509 -in {tempFile}.pem -serial -noout > {tempFile}.ser" + CRLF + ;
          pcOpenSSL + " x509 -inform DER -in {cerFile} -noout -startdate > {tempFile}.sta" +  + CRLF + ;
  		 pcOpenSSL + " x509 -inform DER -in {cerFile} -noout -enddate > {tempFile}.end" + CRLF 
  		 
-*!*	 cBuff = pcOpenSSL + " x509 -inform DER -outform PEM -in {cerFile} -pubkey > {tempFile}.pem " + CRLF + ;
-*!*	         pcOpenSSL + " x509 -in {tempFile}.pem -serial -noout > {tempFile}.ser" + CRLF + ;
-*!*	         pcOpenSSL + " x509 -inform DER -in {cerFile} -noout -startdate > {tempFile}.sta" +  + CRLF + ;
-*!*	 		 pcOpenSSL + " x509 -inform DER -in {cerFile} -noout -enddate > {tempFile}.end" + CRLF 
  cBuff = STRT(cBuff,"{cerFile}",GetShortName(FULLPATH(pcArchivoCER)))
  cBuff = STRT(cBuff,"{tempFile}",cTempFile)
  STRTOFILE(cBuff,cBATFile)
@@ -5166,13 +4772,7 @@ FUNCTION CFDValidarKeyCer(pcArchivoKEY, pcArchivoCER, pcPassword, pcOpenSSL)
  cTempFile = JUSTSTEM(cBATFile)
  
  LOCAL cBuff
-*!*	 cBuff = pcOpenSSL + " x509 -inform der -outform PEM -in {cerFile} -pubkey -out > {tempFile}.pem" + CRLF + ;
-*!*	         pcOpenSSL + " x509 -outform der -in {cerFile} -out > {tempFile}.der" + CRLF + ;
-*!*	         pcOpenSSL + " pkcs8 -inform DER -in {keyFile} -passin pass:{password} -out {tempFile}.pem" + CRLF + ;
-*!*	         pcOpenSSL + " rsa -in {tempFile}.pem -noout -modulus > {tempFile}.m2" + CRLF + ;
-*!*	         "DEL {tempFile}.pem" + CRLF
  cBuff = pcOpenSSL + " x509 -inform DER -in {cerFile} -noout -modulus > {tempFile}.m1" + CRLF + ;
-         pcOpenSSL + " x509 -outform der -in {cerFile} -out > {tempFile}.der" + CRLF + ;
          pcOpenSSL + " pkcs8 -inform DER -in {keyFile} -passin pass:{password} -out {tempFile}.pem" + CRLF + ;
          pcOpenSSL + " rsa -in {tempFile}.pem -noout -modulus > {tempFile}.m2" + CRLF + ;
          "DEL {tempFile}.pem" + CRLF
@@ -5234,7 +4834,7 @@ ENDFUNC
 *   Analiza un XML indicado y verifica que este bien formado y que
 *   cumpla con los requisitos del SAT
 *
-*   El parametro pcMetodo debe ser "md5" o "sha256"
+*   El parametro pcMetodo debe ser "md5" o "sha1"
 *
 *   NOTA IMPORTANTE: Esta función valida el sello del comprobante cuando se
 *   tiene el archivo .key (con su password) con el que se sello el comprobante originalmente.
@@ -5281,7 +4881,7 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
    RETURN .F.
  ENDIF
 
- sAtributeValue = olNode.getAttribute("Version")
+ sAtributeValue = olNode.getAttribute("version")
 
  DO CASE 
    CASE sAtributeValue = "2.0"
@@ -5302,10 +4902,6 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
    CASE sAtributeValue = "3.2"
      lcXSDFilev = "cfdv32.xsd"
      lcURLXSDv  = "http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd"
-     lcURLXNSv  = "http://www.sat.gob.mx/cfd/3"
-   CASE sAtributeValue = "3.3"
-     lcXSDFilev = "cfdv33.xsd"
-     lcURLXSDv  = "http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd"
      lcURLXNSv  = "http://www.sat.gob.mx/cfd/3"
  ENDCASE  
  
@@ -5378,7 +4974,7 @@ FUNCTION CFDValidarXML(pcArchivoXML, pcArchivoKey, pcPassword, pcMetodo, pcOpenS
  IF lResult AND !EMPTY(pcArchivoKey)
   *
   LOCAL cSelloActual,cCadenaOriginal,cSelloCorrecto
-  cSelloActual = MSXMLGetAttribute(oXML.selectNodes("//"+cRootTagName), "Sello")
+  cSelloActual = MSXMLGetAttribute(oXML.selectNodes("//"+cRootTagName), "sello")
   cCadenaOriginal = CFDExtraerCadenaOriginal(pcArchivoXML, JUSTPATH(pcOpenSSL))
   cSelloCorrecto = CFDGenerarSello(cCadenaOriginal, pcArchivoKey, pcPassword, pcMetodo, JUSTPATH(pcOpenSSL))
  
@@ -5651,7 +5247,7 @@ ENDFUNC
 
 DEFINE CLASS CFDReporteMensual AS Custom
  *
- RfcEmisor = ""
+ RFCEmisor = ""
  Mes = ""
  Ano = ""
  Registros = NULL
@@ -5724,7 +5320,7 @@ DEFINE CLASS CFDReporteMensual AS Custom
   *
   *-- Se construye el nombre del archivo
   LOCAL cFileName
-  cFileName = "1" + RTRIM(THIS.RfcEmisor) + PADL(THIS.Mes,2,"0") + PADL(THIS.Ano,4,"0") + ".TXT"
+  cFileName = "1" + RTRIM(THIS.rfcEmisor) + PADL(THIS.Mes,2,"0") + PADL(THIS.Ano,4,"0") + ".TXT"
   
   *-- Si no se indico la ruta, se asume la actual
   IF EMPTY(pcDestino) OR NOT DIRECTORY(pcDestino)
@@ -5749,7 +5345,7 @@ DEFINE CLASS CFDReporteMensual AS Custom
   SELECT (cCursor1)
   GO TOP
   SCAN
-   cLine = THIS._fixStr(Rfc) + "|" + ;
+   cLine = THIS._fixStr(rfc) + "|" + ;
            THIS._fixStr(serie) + "|" + ;
            THIS._fixStr(STR(folio)) + "|" + ;
            THIS._fixStr(ALLT(anoAprob)+ALLT(noAprob)) + "|" + ;
@@ -5797,7 +5393,7 @@ ENDDEFINE
 *
 DEFINE CLASS CFDLineaReporteMensual AS Custom
  *
- Rfc = ""
+ RFC = ""
  Serie = ""
  Folio = 0
  noAprobacion = ""
@@ -5896,14 +5492,14 @@ ENDFUNC
 FUNCTION CFDCadenaCBB(pcArchivoXML)
 	* -- Codigo de barras QRCode
 	* Anexo 20
-	* 1. Rfc del emisor
-	* 2. Rfc del receptor
+	* 1. RFC del emisor
+	* 2. RFC del receptor
 	* 3. Total (a 6 decimales fijos)
 	* 4. Identificador único del timbre (UUID) asignado
 	* 
 	* 95 caracteres conformados de la siguiente manera
-	* -> Rfc del Emisor, a 12/13 posiciones, precedido por el texto / ?re= / 17 caracteres
-	* -> Rfc del Receptor, a 12/13 posiciones, precedido por el texto / &rr= / 17 caracteres
+	* -> RFC del Emisor, a 12/13 posiciones, precedido por el texto / ?re= / 17 caracteres
+	* -> RFC del Receptor, a 12/13 posiciones, precedido por el texto / &rr= / 17 caracteres
 	* -> Total del comprobante a 17 posiciones (10 para los enteros, 
 	*      1 para carácter “.”, 6 para los decimales), precedido por el texto / &tt= / 21 caracteres
 	* -> UUID del comprobante, precedido por el texto / &id= / 40 caracteres
@@ -5928,18 +5524,17 @@ FUNCTION CFDCadenaCBB(pcArchivoXML)
 			*MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Emisor> no presente.", 16, "Sistema")
 			cCodifica = ''
 		ELSE 
-			cRFCEmisor = olNode.getAttribute("Rfc")
+			cRFCEmisor = olNode.getAttribute("rfc")
 		ENDIF
 		
-		* Selecciona el nodo Receptor para sacar el atributo Rfc
+		* Selecciona el nodo Receptor para sacar el atributo RFC
 		olNode = oCFDI.selectSingleNode("//cfdi:Comprobante/cfdi:Receptor")
 		IF ISNULL(olNode) THEN 
 			CFDConf.ultimoError = "XML inválido. Nodo <cfdi:Receptor> no presente."
 			*MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Receptor> no presente.", 16, "Sistema")
 			cCodifica = ''
 		ELSE 
-			cRFCReceptor = olNode.getAttribute("Rfc")
-			cRFCReceptor = olNode.getAttribute("UsoCFDI")
+			cRFCReceptor = olNode.getAttribute("rfc")
 		ENDIF
 		
 		* Selecciona el nodo Comprobante para sacar el atributo RFC
@@ -5949,7 +5544,7 @@ FUNCTION CFDCadenaCBB(pcArchivoXML)
 			*MESSAGEBOX("XML inválido."+CHR(13)+"Nodo <cfdi:Comprobante> no presente.", 16, "Sistema")
 			cCodifica = ''
 		ELSE 
-			cTotal = olNode.getAttribute("Total")
+			cTotal = olNode.getAttribute("total")
 			cTotal = PADL(SUBSTR(cTotal, 1, ATC('.', cTotal)-1), 10, '0')+'.'+PADR(RIGHT(cTotal, LEN(cTotal)-ATC('.', cTotal)), 6, '0')
 		ENDIF
 		
